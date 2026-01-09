@@ -13,20 +13,20 @@ export default function Header() {
 
           {/* MENU */}
           <nav className="hidden md:flex items-center gap-6 text-sm text-gray-600">
-            <a href="#" className="hover:text-blue-600">Khách sạn</a>
-            <a href="#" className="hover:text-blue-600">Chuyến bay</a>
-            <a href="#" className="hover:text-blue-600">Thuê xe</a>
-            <a href="#" className="hover:text-blue-600">Ưu đãi</a>
+            <a href="#" className="hover:text-blue-600">Trang chủ</a>
+            <a href="#" className="hover:text-blue-600">Phòng</a>
+            <a href="#" className="hover:text-blue-600">Tin tức</a>
+            <a href="#" className="hover:text-blue-600">Liên hệ</a>
           </nav>
 
           {/* RIGHT */}
           <div className="flex items-center gap-3">
-            <input
-              type="text"
-              placeholder="Tìm kiếm khách sạn, thành phố..."
-              className="hidden lg:block rounded-lg border px-3 py-2 text-sm"
-            />
-            <div className="h-8 w-8 rounded-full bg-gray-200" />
+         
+            <div className="h-8 w-8 rounded-full bg-gray-200" >
+              {/*Dang nhap*/}
+              <div className="h-8 w-8 rounded-full bg-gray-200" />
+
+            </div>
           </div>
         </div>
       </Container>
