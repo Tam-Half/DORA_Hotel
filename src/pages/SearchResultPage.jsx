@@ -8,6 +8,8 @@ import { Search, MapPin, Calendar, ChevronDown } from 'lucide-react'; // Bỏ im
 import FilterSidebar from '../components/FilterSidebar';
 import RoomCard from '../components/searchroom/RoomCard';
 import Container from '../components/layout/Container';
+import Header from '../components/layout/Header';
+import Footer from '../components/layout/Footer';
 
 // --- MOCK DATA ---
 const ROOMS_DATA = [
@@ -44,10 +46,11 @@ export default function SearchResultPage() {
 
   return (
     <div className="bg-gray-50 min-h-screen pb-20">
-      
+      <Header />
       {/* --- HEADER TÌM KIẾM --- */}
       <div className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-30">
         <Container>
+        
           <div className="py-4">
             
             {/* SEARCH BAR CONTAINER */}
@@ -141,6 +144,7 @@ export default function SearchResultPage() {
           </div>
         </div>
       </Container>
+      <Footer />
     </div>
   );
 }

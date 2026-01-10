@@ -8,9 +8,9 @@ function App() {
   return (
     <>
      <div className="flex min-h-screen flex-col bg-white">
-      <Header />
+
       <AppRoutes  />
-      <Footer />
+     
     </div>
     </>
   )
