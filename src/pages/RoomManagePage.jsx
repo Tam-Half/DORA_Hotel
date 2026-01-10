@@ -1,7 +1,7 @@
 import React from 'react';
 import { Building2, Moon } from 'lucide-react';
-import RoomInfoSidebar from '../components/admin/RoomInfoSidebar';
-import CustomerInfoSection from '../components/admin/CustomerInfoSection'; // <-- Đã đổi tên import
+import RoomInfoSidebar from '../components/admin/detailroom/RoomInfoSidebar';
+import CustomerInfoSection from '../components/admin/detailroom/CustomerInfoSection'; // <-- Đã đổi tên import
 
 // Header (Giữ nguyên)
 const AdminHeader = () => (
