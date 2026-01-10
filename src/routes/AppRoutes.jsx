@@ -5,12 +5,14 @@ import RoomManagePage from "../pages/RoomManagePage";
 import RoomMapPage from "../pages/RoomMapPage";
 import BookingHistoryPage from "../pages/BookingHistoryPage";
 import HomePage from "../pages/HomePage";
+import LoginPage from "../pages/LoginPage";
 export default function AppRoutes() {
     return (
         <BrowserRouter>
             <Routes>
                 {/* <Route path="/" element={<Navigate to="/login" />} /> */}
-                 <Route path="/" element={<HomePage />} />
+                <Route path="/" element={<HomePage />} />
+                <Route path="/login" element={<LoginPage />} />
                 <Route path="/rooms" element={<RoomDetail />} />
                 <Route path="/searchrooms" element={<SearchResultPage />} />
                 <Route path="/admin/detailroom" element={<RoomManagePage />} />
