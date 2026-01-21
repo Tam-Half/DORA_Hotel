@@ -4,17 +4,17 @@ import { Star, User, BedDouble, Ruler, Heart } from 'lucide-react';
 
 export default function RoomCard({ room }) {
   // Format tiền tệ
-  const formatCurrency = (amount) => 
+  const formatCurrency = (amount) =>
     new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount).replace('₫', 'đ');
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-shadow duration-300 flex flex-col h-full group">
       {/* --- IMAGE SECTION --- */}
       <div className="relative h-48 overflow-hidden">
-        <img 
-          src={room.image} 
-          alt={room.name} 
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+        <img
+          src={room.images && room.images.length > 0 ? room.images[0].url : 'https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=2070&auto=format&fit=crop'}
+          alt={room.name}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
         {/* Badge Giảm giá / Nổi bật */}
         {room.discount && (
@@ -38,12 +38,12 @@ export default function RoomCard({ room }) {
         {/* Loại phòng & Rating */}
         <div className="flex justify-between items-center mb-2">
           <span className="bg-blue-50 text-blue-600 text-xs font-semibold px-2 py-1 rounded">
-            {room.type}
+            {room.capacity_people > 1 ? 'Phòng Đôi' : 'Phòng Đơn'}
           </span>
           <div className="flex items-center gap-1 text-orange-500 text-sm font-bold">
             <Star size={14} fill="currentColor" />
-            <span>{room.rating}</span>
-            <span className="text-gray-400 font-normal">({room.reviewCount})</span>
+            <span>4.8</span>
+            <span className="text-gray-400 font-normal">(124)</span>
           </div>
         </div>
 
@@ -55,13 +55,13 @@ export default function RoomCard({ room }) {
         {/* Thông số kỹ thuật */}
         <div className="flex flex-wrap gap-3 text-sm text-gray-500 mb-4">
           <div className="flex items-center gap-1">
-            <Ruler size={14} /> {room.area}m²
+            <Ruler size={14} /> {room.size_m2}m²
           </div>
           <div className="flex items-center gap-1">
-            <BedDouble size={14} /> {room.bed}
+            <BedDouble size={14} /> {room.capacity_people > 1 ? '2 Giường' : '1 Giường'}
           </div>
           <div className="flex items-center gap-1">
-            <User size={14} /> {room.capacity}
+            <User size={14} /> {room.capacity_people} Người
           </div>
         </div>
 
@@ -74,7 +74,7 @@ export default function RoomCard({ room }) {
               </p>
             )}
             <p className="text-xl font-bold text-gray-900">
-              {formatCurrency(room.price)}
+              {formatCurrency(room.base_price)}
             </p>
             <p className="text-xs text-gray-500">/ đêm</p>
           </div>
