@@ -1,6 +1,6 @@
 import api from './api';
 
-const authService = {
+const authAPI = {
     login: async (credentials) => {
         try {
             const response = await api.post('/auth/', credentials);
@@ -29,4 +29,4 @@ const authService = {
 
 };
 
-export default authService;
+export default authAPI;

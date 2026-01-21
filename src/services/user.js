@@ -1,6 +1,6 @@
 import api from './api';
 
-const userService = {
+const userAPI = {
 
     getProfile: async () => {
         try {
@@ -23,4 +23,4 @@ const userService = {
 
 };
 
-export default userService;
+export default userAPI;

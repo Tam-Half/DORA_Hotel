@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import authService from '../services/authService';
-import userService from '../services/userService';
+import authAPI from '../services/auth';
+import userAPI from '../services/user';
 
 const AuthContext = createContext();
 
@@ -10,14 +10,14 @@ export const AuthProvider = ({ children }) => {
 
     const fetchProfile = async () => {
         try {
-            const token = authService.getToken();
+            const token = authAPI.getToken();
             if (token) {
-                const response = await userService.getProfile();
+                const response = await userAPI.getProfile();
                 setUser(response);
             }
         } catch (error) {
             console.error('Failed to fetch profile:', error);
-            authService.logout();
+            authAPI.logout();
             setUser(null);
         } finally {
             setLoading(false);
@@ -29,18 +29,18 @@ export const AuthProvider = ({ children }) => {
     }, []);
 
     const login = async (credentials) => {
-        const data = await authService.login(credentials);
+        const data = await authAPI.login(credentials);
         await fetchProfile();
         return data;
     };
 
     const logout = () => {
-        authService.logout();
+        authAPI.logout();
         setUser(null);
     };
 
     const register = async (userData) => {
-        const data = await userService.create(userData);
+        const data = await userAPI.create(userData);
         return data;
     };
 
