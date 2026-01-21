@@ -6,6 +6,7 @@ import RoomMapPage from "../pages/RoomMapPage";
 import BookingHistoryPage from "../pages/BookingHistoryPage";
 import HomePage from "../pages/HomePage";
 import LoginPage from "../pages/LoginPage";
+import RegisterPage from "../pages/RegisterPage";
 export default function AppRoutes() {
     return (
         <BrowserRouter>
@@ -13,6 +14,7 @@ export default function AppRoutes() {
                 {/* <Route path="/" element={<Navigate to="/login" />} /> */}
                 <Route path="/" element={<HomePage />} />
                 <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
                 <Route path="/rooms" element={<RoomDetail />} />
                 <Route path="/searchrooms" element={<SearchResultPage />} />
                 <Route path="/admin/detailroom" element={<RoomManagePage />} />
@@ -21,5 +23,5 @@ export default function AppRoutes() {
                 {/* Có thể thêm route khác sau này */}
             </Routes>
         </BrowserRouter>
-    ); 
+    );
 }

@@ -39,8 +39,13 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
     };
 
+    const register = async (userData) => {
+        const data = await userService.create(userData);
+        return data;
+    };
+
     return (
-        <AuthContext.Provider value={{ user, loading, login, logout, isAuthenticated: !!user }}>
+        <AuthContext.Provider value={{ user, loading, login, logout, register, isAuthenticated: !!user }}>
             {children}
         </AuthContext.Provider>
     );

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Mail, Eye, EyeOff, Loader2, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-toastify';
@@ -11,7 +11,7 @@ export default function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
-    email: '',
+    username: '',
     password: '',
     rememberMe: false
   });
@@ -23,7 +23,7 @@ export default function LoginForm() {
 
     try {
       await login({
-        email: formData.email,
+        username: formData.username,
         password: formData.password
       });
       toast.success('Đăng nhập thành công!');
@@ -51,16 +51,16 @@ export default function LoginForm() {
 
         {/* Email Field */}
         <div className="space-y-2">
-          <label className="text-sm font-semibold text-gray-700 block">Email</label>
+          <label className="text-sm font-semibold text-gray-700 block">Tên đăng nhập</label>
           <div className="relative">
             <input
               type="text"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              value={formData.username}
+              onChange={(e) => setFormData({ ...formData, username: e.target.value })}
               className="w-full border border-gray-300 rounded-lg pl-4 pr-10 py-3 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-              placeholder="name@example.com"
+              placeholder="Nhập tên đăng nhập của bạn"
             />
-            <Mail className="absolute right-3 top-3 text-gray-400" size={20} />
+            <User className="absolute right-3 top-3 text-gray-400" size={20} />
           </div>
         </div>
 
@@ -156,9 +156,13 @@ export default function LoginForm() {
         <div className="text-center mt-6">
           <p className="text-sm text-gray-500">
             Chưa có tài khoản?{' '}
-            <a href="#" className="font-bold text-blue-600 hover:text-blue-500 hover:underline">
+            <button
+              type="button"
+              onClick={() => navigate('/register')}
+              className="font-bold text-blue-600 hover:text-blue-500 hover:underline"
+            >
               Đăng ký tài khoản mới
-            </a>
+            </button>
           </p>
         </div>
 

@@ -11,6 +11,15 @@ const userService = {
         }
     },
 
+    create: async (userData) => {
+        try {
+            const response = await api.post('/user/', userData);
+            return response.data;
+        } catch (error) {
+            throw error.response?.data || error.message;
+        }
+    },
+
 
 };
 
