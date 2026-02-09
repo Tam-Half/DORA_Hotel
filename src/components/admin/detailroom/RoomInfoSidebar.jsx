@@ -1,12 +1,18 @@
 // src/features/admin/components/RoomInfoSidebar.jsx
 import React from 'react';
 import { Users, Layout, FileText, Info, ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
-export default function RoomInfoSidebar() {
+export default function RoomInfoSidebar({ room }) {
+  const navigate = useNavigate();
+
+  console.log('Room Info Sidebar received room:', room);
   return (
     <div className="w-full">
       {/* Nút Quay lại */}
-      <button className="flex items-center gap-2 text-gray-500 hover:text-gray-900 mb-6 transition-colors font-medium">
+      <button
+        onClick={() => navigate(-1)}
+       className="flex items-center gap-2 text-gray-500 hover:text-gray-900 mb-6 transition-colors font-medium">
         <ArrowLeft size={18} /> Quay lại
       </button>
 

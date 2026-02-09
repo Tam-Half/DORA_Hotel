@@ -4,6 +4,8 @@ import { User, BedDouble, Wrench, CheckCircle } from 'lucide-react';
 
 export default function RoomCard({ room, onClick }) {
   // Logic style động dựa theo trạng thái
+
+  console.log('Room data in RoomCard:', room);
   const getStatusStyle = () => {
     switch (room.status) {
       case 'AVAILABLE':
@@ -46,9 +48,9 @@ export default function RoomCard({ room, onClick }) {
       {/* Header: Số phòng */}
       <div className="mb-2 mt-2">
         <h3 className={`text-2xl font-bold ${room.status === 'BOOKED' ? 'text-gray-500' : 'text-gray-800'}`}>
-          {room.number}
+          {room.room_number}
         </h3>
-        <p className="text-xs text-gray-500 font-medium truncate">{room.name}</p>
+        <p className="text-xl text-gray-500 font-medium truncate">{room.roomType.slug}</p>
       </div>
 
       {/* Content: Icon giường/bảo trì */}
@@ -68,16 +70,16 @@ export default function RoomCard({ room, onClick }) {
           <>
             <div className="flex items-center gap-1 text-gray-500">
               <User size={14} />
-              <span className="text-xs">{room.capacity}</span>
+              <span className="text-xs">{room.roomType.capacity_people}</span>
             </div>
             <div className="text-right">
               {room.status === 'AVAILABLE' ? (
                  <span className="text-blue-600 font-bold text-sm">
-                   {(room.price / 1000)}k <span className="text-[10px] font-normal text-gray-400">/đêm</span>
+                   {(room.roomType.base_price / 1000)}k <span className="text-[10px] font-normal text-gray-400">/đêm</span>
                  </span>
               ) : (
                 <span className="text-gray-400 font-bold text-sm">
-                   {(room.price / 1000)}k
+                   {(room.roomType.base_price / 1000)}k
                 </span>
               )}
             </div>

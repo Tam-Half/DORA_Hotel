@@ -2,7 +2,7 @@ import React from 'react';
 import { Building2, Moon } from 'lucide-react';
 import RoomInfoSidebar from '../components/admin/detailroom/RoomInfoSidebar';
 import CustomerInfoSection from '../components/admin/detailroom/CustomerInfoSection'; // <-- Đã đổi tên import
-
+import { useParams } from 'react-router-dom';
 // Header (Giữ nguyên)
 const AdminHeader = () => (
   <header className="bg-white border-b border-gray-200 h-16 px-6 flex items-center justify-between sticky top-0 z-50">
@@ -31,6 +31,9 @@ const AdminHeader = () => (
 );
 
 export default function RoomManagePage() {
+
+  const {rooms} = useParams();
+  console.log('RoomManagePage received room1:', rooms);
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
       <AdminHeader />
@@ -40,7 +43,7 @@ export default function RoomManagePage() {
           
           {/* CỘT TRÁI: THÔNG TIN PHÒNG */}
           <div className="lg:col-span-1 bg-white rounded-xl shadow-sm border border-gray-200 p-6 sticky top-24">
-            <RoomInfoSidebar />
+            <RoomInfoSidebar room={rooms}/>
           </div>
 
           {/* CỘT PHẢI: QUẢN LÝ KHÁCH HÀNG */}

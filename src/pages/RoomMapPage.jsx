@@ -1,15 +1,16 @@
 // src/features/room-map/pages/RoomMapPage.jsx
-import React, { useState, forwardRef } from 'react';
+import React, { useState, forwardRef, useEffect, useMemo } from 'react';
 import DatePicker from 'react-datepicker';
-import "react-datepicker/dist/react-datepicker.css"; // Import CSS của lịch
-import { vi } from 'date-fns/locale'; // Import tiếng Việt
-import { Plus, RotateCcw, Calendar, Filter } from 'lucide-react';
+import "react-datepicker/dist/react-datepicker.css"; 
+import { vi } from 'date-fns/locale'; 
+import { Plus, RotateCcw, Calendar } from 'lucide-react';
 import RoomMapSidebar from '../components/admin/maproom/RoomMapSidebar';
 import RoomCard from '../components/admin/maproom/RoomCard';
-import { ROOMS_DATA } from "../data/mockRooms";
+import roomAPI from '../services/room';
+import { useNavigate } from 'react-router-dom';
 
-// --- COMPONENT CON: CUSTOM INPUT CHO LỊCH ---
-// Giúp DatePicker hiển thị giống hệt thiết kế Input của bạn
+
+// --- GIỮ NGUYÊN COMPONENT UI CỦA BẠN ---
 const CustomDateInput = forwardRef(({ value, onClick }, ref) => (
   <div className="relative w-full sm:w-auto cursor-pointer" onClick={onClick} ref={ref}>
     <input 
@@ -24,41 +25,100 @@ const CustomDateInput = forwardRef(({ value, onClick }, ref) => (
 ));
 
 export default function RoomMapPage() {
+  const navigate = useNavigate();
   const [activeFloor, setActiveFloor] = useState('all');
   const [filterStatus, setFilterStatus] = useState('ALL'); 
-  const [selectedDate, setSelectedDate] = useState(new Date()); // State quản lý ngày
+  const [selectedDate, setSelectedDate] = useState(new Date()); 
+  const [loading, setLoading] = useState(true);
+  const [rooms, setRooms] = useState([]);
 
-  // Logic lọc phòng
-  const filteredRooms = ROOMS_DATA.filter(room => {
-    const matchFloor = activeFloor === 'all' || room.floor === activeFloor;
+  // 1. Fetch API
+  useEffect(() => {
+    const fetchRooms = async () => {
+      try {
+        setLoading(true);
+        const response = await roomAPI.getAll();
+        const roomData = response.data || [];
+        setRooms(roomData);
+      } catch (err) {
+        console.error('Failed to fetch rooms:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchRooms();
+  }, []);
+
+
+  // Tự động tính toán số lượng theo status mỗi khi dữ liệu rooms thay đổi
+  const statusCounts = useMemo(() => {
+    // Khởi tạo giá trị ban đầu
+    const initialCounts = {
+      ALL: rooms.length,      // Tổng tất cả
+      AVAILABLE: 0,           // Trống
+      BOOKED: 0,              // Đã đặt
+      MAINTENANCE: 0          // Bảo trì
+    };
+
+    // Dùng reduce để đếm (chạy 1 vòng lặp duy nhất -> Tối ưu hiệu năng)
+    return rooms.reduce((acc, room) => {
+      const status = room.status;
+      // Kiểm tra nếu status nằm trong các key mình cần đếm
+      if (acc.hasOwnProperty(status)) {
+        acc[status] += 1;
+      }
+      return acc;
+    }, initialCounts);
+  }, [rooms]);
+
+
+
+  // 2. Logic lọc phòng (ĐÃ SỬA: truy cập vào .floor.id)
+  const filteredRooms = rooms.filter(room => {
+    // Sửa ở đây: room.floor là object nên phải lấy .id
+    const matchFloor = activeFloor === 'all' || room.floor?.id === activeFloor;
     const matchStatus = filterStatus === 'ALL' || room.status === filterStatus;
     return matchFloor && matchStatus;
   });
 
+  // 3. Tự động lấy danh sách các tầng có trong dữ liệu API
+  const uniqueFloors = useMemo(() => {
+    const floors = [];
+    const map = new Map();
+    for (const room of rooms) {
+        if (room.floor && !map.has(room.floor.id)) {
+            map.set(room.floor.id, true);
+            floors.push(room.floor);
+        }
+    }
+    return floors.sort((a, b) => a.id - b.id);
+  }, [rooms]);
+
   // --- XỬ LÝ CLICK PHÒNG ---
-  const handleRoomClick = (room) => {
-    // Logic xử lý khi click vào phòng (kể cả phòng Đã đặt)
-    // Sau này bạn có thể mở Modal Check-in/Check-out hoặc xem chi tiết tại đây
-    
+  const handleRoomClick = (rooms) => {
+    // Logic của bạn
+    console.log('Clicked room:', rooms);
+    navigate(`/admin/detailroom`, { room: rooms });
   };
 
-  // Gom nhóm phòng theo tầng
+  // 4. Hàm render (GIỮ NGUYÊN GIAO DIỆN HTML/CSS CỦA BẠN)
   const renderRoomsByFloor = (floorId, floorName) => {
-    const roomsInFloor = filteredRooms.filter(r => r.floor === floorId);
+    // Sửa ở đây: so sánh với floor.id
+    const roomsInFloor = filteredRooms.filter(r => r.floor?.id === floorId);
+    
     if (roomsInFloor.length === 0) return null;
 
     return (
       <div key={floorId} className="mb-8">
         <h3 className="text-gray-700 font-bold mb-4 flex items-center gap-2">
           <span className="bg-gray-200 px-2 py-1 rounded text-xs text-gray-600">Tầng {floorId}</span>
-          {floorName}
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           {roomsInFloor.map(room => (
             <RoomCard 
               key={room.id} 
-              room={room} 
-              onClick={handleRoomClick} // Truyền hàm xử lý click
+              room={roomsInFloor.find(r => r.id === room.id)} 
+              onClick={handleRoomClick} 
             />
           ))}
         </div>
@@ -68,14 +128,14 @@ export default function RoomMapPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans p-6">
-      {/* Header Page */}
+      {/* Header Page - GIỮ NGUYÊN */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Sơ Đồ Phòng Trống</h1>
           <p className="text-sm text-gray-500">Xem và quản lý trạng thái phòng theo thời gian thực</p>
         </div>
         <div className="flex gap-3">
-          <button className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 flex items-center gap-2 text-gray-700">
+          <button onClick={() => window.location.reload()} className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 flex items-center gap-2 text-gray-700">
             <RotateCcw size={16} /> Làm mới
           </button>
           <button className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 flex items-center gap-2 shadow-sm shadow-blue-200">
@@ -86,18 +146,17 @@ export default function RoomMapPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
         
-        {/* SIDEBAR */}
+        {/* SIDEBAR - GIỮ NGUYÊN */}
         <div className="hidden lg:block lg:col-span-1 sticky top-6">
-          <RoomMapSidebar activeFloor={activeFloor} onSelectFloor={setActiveFloor} />
+          <RoomMapSidebar activeFloor={activeFloor} onSelectFloor={setActiveFloor} statusCounts={statusCounts}/>
         </div>
 
         {/* MAIN CONTENT */}
         <div className="lg:col-span-4 space-y-6">
           
-          {/* FILTER BAR */}
+          {/* FILTER BAR - GIỮ NGUYÊN */}
           <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex flex-wrap gap-4 items-end">
             
-            {/* 1. NGÀY NHẬN PHÒNG (Đã sửa thành DatePicker) */}
             <div className="w-full sm:w-auto">
               <label className="block text-xs font-bold text-gray-500 mb-1.5">Ngày nhận phòng</label>
               <DatePicker 
@@ -105,11 +164,10 @@ export default function RoomMapPage() {
                 onChange={(date) => setSelectedDate(date)} 
                 dateFormat="dd/MM/yyyy"
                 locale={vi}
-                customInput={<CustomDateInput />} // Sử dụng input custom đẹp
+                customInput={<CustomDateInput />} 
               />
             </div>
 
-            {/* 2. LOẠI PHÒNG */}
             <div className="w-full sm:w-auto flex-1">
               <label className="block text-xs font-bold text-gray-500 mb-1.5">Lọc theo loại phòng</label>
               <select className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-full outline-none focus:ring-2 focus:ring-blue-500 bg-white">
@@ -119,7 +177,6 @@ export default function RoomMapPage() {
               </select>
             </div>
 
-            {/* 3. STATUS TABS */}
             <div className="w-full sm:w-auto flex items-center bg-gray-100 p-1 rounded-lg">
               {[
                 { id: 'ALL', label: 'Tất cả' },
@@ -143,18 +200,22 @@ export default function RoomMapPage() {
             </div>
           </div>
 
-          {/* ROOM GRID */}
+          {/* ROOM GRID - CHỈ SỬA LOGIC HIỂN THỊ */}
           <div className="min-h-[500px]">
             {activeFloor === 'all' ? (
-              <>
-                {renderRoomsByFloor(1, 'Sảnh chính & Deluxe')}
-                {renderRoomsByFloor(2, 'Khu vực VIP')}
-              </>
+              uniqueFloors.length > 0 ? (
+                uniqueFloors.map(floor => renderRoomsByFloor(floor.id, floor.name))
+              ) : (
+                <div className="text-center text-gray-500 py-10">Đang tải dữ liệu hoặc chưa có phòng...</div>
+              )
             ) : (
-              renderRoomsByFloor(activeFloor, 'Chi tiết tầng')
+              // Logic hiển thị 1 tầng cụ thể
+              (() => {
+                const floor = uniqueFloors.find(f => f.id === activeFloor);
+                return floor ? renderRoomsByFloor(floor.id, floor.name) : null;
+              })()
             )}
           </div>
-
         </div>
       </div>
     </div>
