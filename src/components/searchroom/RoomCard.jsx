@@ -1,15 +1,30 @@
 // src/features/search/components/RoomCard.jsx
-import React from 'react';
 import { Star, User, BedDouble, Ruler, Heart } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
-export default function RoomCard({ room }) {
+export default function RoomCard({ room, startDate, endDate }) {
+  const navigate = useNavigate();
+
   // Format tiền tệ
   const formatCurrency = (amount) =>
     new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount).replace('₫', 'đ');
 
+  const handleBookNow = () => {
+    const roomId = room.roomTypeId || room.id;
+    let url = `/rooms/${roomId}`;
+
+    if (startDate && endDate) {
+      const checkInStr = startDate.toISOString().split('T')[0];
+      const checkOutStr = endDate.toISOString().split('T')[0];
+      url += `?checkIn=${checkInStr}&checkOut=${checkOutStr}`;
+    }
+
+    navigate(url);
+  };
+
   return (
     <div className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-shadow duration-300 flex flex-col h-full group">
-      {/* --- IMAGE SECTION --- */}
+      {/* ... image section ... */}
       <div className="relative h-48 overflow-hidden">
         <img
           src={room.images && room.images.length > 0 ? room.images[0].url : 'https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=2070&auto=format&fit=crop'}
@@ -64,7 +79,11 @@ export default function RoomCard({ room }) {
             <User size={14} /> {room.capacity_people} Người
           </div>
         </div>
-
+        {room.availableCount && (
+          <p className="text-blue-600 font-semibold text-sm">
+            {room.availableCount} phòng còn trống
+          </p>
+        )}
         {/* Giá & Button (Đẩy xuống đáy) */}
         <div className="mt-auto flex items-end justify-between">
           <div>
@@ -74,11 +93,15 @@ export default function RoomCard({ room }) {
               </p>
             )}
             <p className="text-xl font-bold text-gray-900">
-              {formatCurrency(room.base_price)}
+              {formatCurrency(room.basePrice || room.base_price)}
             </p>
+
             <p className="text-xs text-gray-500">/ đêm</p>
           </div>
-          <button className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors text-sm">
+          <button
+            onClick={handleBookNow}
+            className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors text-sm"
+          >
             Đặt ngay
           </button>
         </div>

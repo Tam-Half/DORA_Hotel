@@ -15,9 +15,8 @@ const GuestCounter = ({ label, subLabel, value, onDecrease, onIncrease, max = 10
       <button
         onClick={onDecrease}
         disabled={value <= 0}
-        className={`w-8 h-8 rounded-full border flex items-center justify-center transition ${
-          value <= 0 ? 'border-gray-200 text-gray-300 cursor-not-allowed' : 'border-gray-400 text-gray-600 hover:border-black hover:text-black'
-        }`}
+        className={`w-8 h-8 rounded-full border flex items-center justify-center transition ${value <= 0 ? 'border-gray-200 text-gray-300 cursor-not-allowed' : 'border-gray-400 text-gray-600 hover:border-black hover:text-black'
+          }`}
       >
         <Minus size={14} />
       </button>
@@ -25,9 +24,8 @@ const GuestCounter = ({ label, subLabel, value, onDecrease, onIncrease, max = 10
       <button
         onClick={onIncrease}
         disabled={value >= max}
-        className={`w-8 h-8 rounded-full border flex items-center justify-center transition ${
-          value >= max ? 'border-gray-200 text-gray-300 cursor-not-allowed' : 'border-gray-400 text-gray-600 hover:border-black hover:text-black'
-        }`}
+        className={`w-8 h-8 rounded-full border flex items-center justify-center transition ${value >= max ? 'border-gray-200 text-gray-300 cursor-not-allowed' : 'border-gray-400 text-gray-600 hover:border-black hover:text-black'
+          }`}
       >
         <Plus size={14} />
       </button>
@@ -35,12 +33,16 @@ const GuestCounter = ({ label, subLabel, value, onDecrease, onIncrease, max = 10
   </div>
 );
 
-export default function BookingCard() {
-  const [pricePerNight] = useState(2500000);
-  
+export default function BookingCard({ room, initialCheckIn, initialCheckOut }) {
+  const [pricePerNight] = useState(room?.basePrice || room?.base_price || 2500000);
+
   // State cho Lịch (Ngày bắt đầu - Ngày kết thúc)
-  const [startDate, setStartDate] = useState(new Date());
-  const [endDate, setEndDate] = useState(new Date(new Date().setDate(new Date().getDate() + 3))); // Mặc định +3 ngày
+  const [startDate, setStartDate] = useState(initialCheckIn ? new Date(initialCheckIn) : new Date());
+  const [endDate, setEndDate] = useState(
+    initialCheckOut
+      ? new Date(initialCheckOut)
+      : new Date(new Date().setDate(new Date().getDate() + 3))
+  );
 
   // State cho Khách
   const [guests, setGuests] = useState({ adults: 2, children: 1, infants: 0 });
@@ -50,7 +52,7 @@ export default function BookingCard() {
   // --- LOGIC TÍNH TOÁN ---
   // Tính số đêm
   const nights = Math.max(1, Math.round((endDate - startDate) / (1000 * 60 * 60 * 24)));
-  
+
   const cleaningFee = 200000;
   const totalPrice = (pricePerNight * nights) + cleaningFee;
 
@@ -87,11 +89,11 @@ export default function BookingCard() {
       </div>
 
       {/* --- FORM NHẬP LIỆU --- */}
-      <div className="border border-gray-300 rounded-xl mb-4 relative bg-white z-10">
-        
+      <div className=" rounded-xl mb-4 relative bg-white z-10">
+
         {/* DATE PICKER */}
-        <div className="flex border-b border-gray-300">
-          <div className="w-1/2 p-3 border-r border-gray-300 hover:bg-gray-50 cursor-pointer relative">
+        <div className="flex ">
+          <div className="w-1/2 p-3 hover:bg-gray-50 cursor-pointer relative">
             <label className="block text-[10px] font-bold text-gray-700 uppercase mb-1">Nhận phòng</label>
             <DatePicker
               selected={startDate}
@@ -121,53 +123,11 @@ export default function BookingCard() {
           </div>
         </div>
 
-        {/* GUEST DROPDOWN */}
-        <div className="relative" ref={guestDropdownRef}>
-          <div 
-            className="p-3 hover:bg-gray-50 cursor-pointer"
-            onClick={() => setIsGuestOpen(!isGuestOpen)}
-          >
-            <label className="block text-[10px] font-bold text-gray-700 uppercase mb-1">Khách</label>
-            <div className="flex items-center justify-between text-sm text-gray-900">
-              <span className="truncate pr-2">{getGuestLabel()}</span>
-              <ChevronDown size={18} className={`transition-transform ${isGuestOpen ? 'rotate-180' : ''}`} />
-            </div>
-          </div>
-
-          {/* Menu xổ xuống (Dropdown Content) */}
-          {isGuestOpen && (
-            <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-2xl p-4 mt-2 z-50 animate-in fade-in zoom-in-95 duration-200">
-              <GuestCounter 
-                label="Người lớn" 
-                subLabel="Từ 13 tuổi trở lên"
-                value={guests.adults}
-                onDecrease={() => setGuests(prev => ({ ...prev, adults: Math.max(1, prev.adults - 1) }))} // Min 1 người lớn
-                onIncrease={() => setGuests(prev => ({ ...prev, adults: prev.adults + 1 }))}
-              />
-              <GuestCounter 
-                label="Trẻ em" 
-                subLabel="Độ tuổi 2 - 12"
-                value={guests.children}
-                onDecrease={() => setGuests(prev => ({ ...prev, children: Math.max(0, prev.children - 1) }))}
-                onIncrease={() => setGuests(prev => ({ ...prev, children: prev.children + 1 }))}
-              />
-              <GuestCounter 
-                label="Em bé" 
-                subLabel="Dưới 2 tuổi"
-                value={guests.infants}
-                onDecrease={() => setGuests(prev => ({ ...prev, infants: Math.max(0, prev.infants - 1) }))}
-                onIncrease={() => setGuests(prev => ({ ...prev, infants: prev.infants + 1 }))}
-              />
-              
-              <div className="mt-4 pt-3 text-right">
-                <button 
-                  onClick={() => setIsGuestOpen(false)}
-                  className="text-sm font-semibold underline text-gray-800 hover:text-black"
-                >
-                  Đóng
-                </button>
-              </div>
-            </div>
+        <div className="pt-3 pl-3 flex">
+          {room.availableCount && (
+            <p className="text-blue-600 font-semibold text-md">
+              Còn {room.availableCount} phòng trống
+            </p>
           )}
         </div>
       </div>
@@ -177,7 +137,7 @@ export default function BookingCard() {
         Đặt phòng ngay
       </button>
 
-      <div className="space-y-3 border-t border-gray-100 pt-4 mt-4">
+      <div className="space-y-3 pt-4 mt-4">
         <div className="flex justify-between text-gray-600 text-base">
           <span className="underline decoration-gray-300 decoration-dotted">
             {formatCurrency(pricePerNight)} x {nights} đêm

@@ -15,7 +15,7 @@ export default function AppRoutes() {
                 <Route path="/" element={<HomePage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
-                <Route path="/rooms" element={<RoomDetail />} />
+                <Route path="/rooms/:id" element={<RoomDetail />} />
                 <Route path="/searchrooms" element={<SearchResultPage />} />
                 <Route path="/admin/detailroom" element={<RoomManagePage />} />
                 <Route path="/admin" element={<RoomMapPage />} />

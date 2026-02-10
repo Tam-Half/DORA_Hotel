@@ -1,8 +1,8 @@
 import { useState } from "react";
 
 import TienIch from "./tienich.jsx";
-export default function RoomAmenities() {
-  const amenities = [
+export default function RoomAmenities({ amenities: propsAmenities = [] }) {
+  const defaultAmenities = [
     { url: "https://picsum.photos/200?1", name: "WiFi" },
     { url: "https://picsum.photos/200?2", name: "Điều hòa" },
     { url: "https://picsum.photos/200?3", name: "TV" },
@@ -11,6 +11,8 @@ export default function RoomAmenities() {
     { url: "https://picsum.photos/200?6", name: "Bãi đỗ xe" },
     { url: "https://picsum.photos/200?7", name: "Hồ bơi" },
   ];
+
+  const amenities = propsAmenities.length > 0 ? propsAmenities : defaultAmenities;
 
   const MAX = 6;
   const [showAll, setShowAll] = useState(false);
