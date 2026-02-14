@@ -2,18 +2,17 @@ import React, { useState, useEffect, forwardRef } from 'react';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import { vi } from 'date-fns/locale';
-import { Search, MapPin, Calendar, ChevronDown } from 'lucide-react'; // Bỏ import Users, Minus, Plus vì không dùng ở đây nữa
+import { Search, MapPin, Calendar, ChevronDown, Bed, Loader2 } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 
 import FilterSidebar from '../components/FilterSidebar';
 import RoomCard from '../components/searchroom/RoomCard';
 import Container from '../components/layout/Container';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
-import roomTypeAPI from '../services/roomType';
-import { Loader2 } from 'lucide-react';
-
-// --- MOCK DATA ---
-// Removed ROOMS_DATA as it will be replaced by API data
+import { roomTypeApi } from '../services/roomType';
+import { useSearchAvailabilityMutation } from '../services/availability';
+import { toast } from 'react-toastify';
 
 // Custom Input cho DatePicker
 const CustomDateInput = forwardRef(({ value, onClick }, ref) => (
@@ -30,33 +29,74 @@ const CustomDateInput = forwardRef(({ value, onClick }, ref) => (
 ));
 
 export default function SearchResultPage() {
+  const location = useLocation();
+  const initialResults = location.state?.results;
+  const initialParams = location.state?.searchParams;
+
   // --- STATE ---
-  const [dateRange, setDateRange] = useState([new Date(), new Date(new Date().setDate(new Date().getDate() + 2))]);
+  const [dateRange, setDateRange] = useState(
+    initialParams
+      ? [new Date(initialParams.checkIn), new Date(initialParams.checkOut)]
+      : [new Date(), new Date(new Date().setDate(new Date().getDate() + 2))]
+  );
   const [startDate, endDate] = dateRange;
+  const [roomsCount, setRoomsCount] = useState(initialParams?.rooms || 1);
 
-  // State quản lý khách vẫn giữ ở đây để hiển thị Total Summary
-  const [guests, setGuests] = useState({ adults: 2, children: 0 });
-  const totalGuests = guests.adults + guests.children;
-
-  const [rooms, setRooms] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [rooms, setRooms] = useState(initialResults || []);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  const [searchAvailability, { isLoading: searchLoading }] = useSearchAvailabilityMutation();
+
+  // RTK Query for all rooms (if no initial results)
+  const {
+    data: allRoomsResponse,
+    isLoading: allRoomsLoading,
+    error: allRoomsError
+  } = roomTypeApi.useGetAllRoomTypesQuery(undefined, {
+    skip: !!initialResults
+  });
+
   useEffect(() => {
-    const fetchRooms = async () => {
-      try {
-        setLoading(true);
-        const response = await roomTypeAPI.getAll();
-        setRooms(response.data || []);
-      } catch (err) {
-        console.error('Failed to fetch rooms:', err);
-        setError('Không thể tải danh sách phòng. Vui lòng thử lại sau.');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchRooms();
-  }, []);
+    if (initialResults) {
+      setRooms(initialResults);
+    } else if (allRoomsResponse?.data) {
+      setRooms(allRoomsResponse.data);
+    }
+  }, [initialResults, allRoomsResponse]);
+
+  useEffect(() => {
+    if (allRoomsError) {
+      setError('Không thể tải danh sách phòng. Vui lòng thử lại sau.');
+    }
+  }, [allRoomsError]);
+
+  const isLoading = loading || searchLoading || allRoomsLoading;
+
+  const handleSearch = async () => {
+    if (!startDate || !endDate) {
+      toast.warning("Vui lòng chọn ngày nhận và trả phòng");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const searchParams = {
+        checkIn: startDate.toISOString(),
+        checkOut: endDate.toISOString(),
+        rooms: parseInt(roomsCount)
+      };
+
+      const result = await searchAvailability(searchParams).unwrap();
+      setRooms(result.availableRoomTypes || []);
+      setError(null);
+    } catch (err) {
+      console.error("Search Error:", err);
+      toast.error(err?.data?.message || "Có lỗi xảy ra khi tìm kiếm phòng.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="bg-gray-50 min-h-screen pb-20">
@@ -64,15 +104,11 @@ export default function SearchResultPage() {
       {/* --- HEADER TÌM KIẾM --- */}
       <div className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-30">
         <Container>
-
           <div className="py-4">
-
             {/* SEARCH BAR CONTAINER */}
             <div className="bg-gray-100 rounded-lg p-1.5 flex flex-col md:flex-row items-center justify-between gap-2 md:gap-0">
-
-              {/* INPUT GROUPS - ĐÃ BỎ PHẦN CHỌN USER */}
+              {/* INPUT GROUPS */}
               <div className="flex items-center gap-2 md:gap-4 px-2 md:px-4 text-sm text-gray-700 w-full md:w-auto overflow-x-auto no-scrollbar">
-
                 {/* 1. LOCATION */}
                 <div className="flex items-center gap-2 cursor-pointer hover:bg-gray-200 px-3 py-2 rounded-md transition min-w-fit h-full">
                   <MapPin size={18} className="text-gray-500" />
@@ -98,15 +134,34 @@ export default function SearchResultPage() {
                     className="w-full"
                   />
                 </div>
+
+                <div className="w-px h-6 bg-gray-300 hidden md:block"></div>
+
+                {/* 3. ROOM COUNT */}
+                <div className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-gray-200 transition min-w-fit cursor-pointer">
+                  <Bed size={18} className="text-gray-500" />
+                  <select
+                    value={roomsCount}
+                    onChange={(e) => setRoomsCount(e.target.value)}
+                    className="bg-transparent font-medium text-gray-700 text-sm focus:outline-none cursor-pointer appearance-none"
+                  >
+                    {[1, 2, 3, 4, 5].map(num => (
+                      <option key={num} value={num}>{num} phòng</option>
+                    ))}
+                  </select>
+
+                </div>
               </div>
 
               {/* SEARCH BUTTON */}
-              <button className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2.5 rounded-md text-sm font-bold flex items-center gap-2 transition w-full md:w-auto justify-center shadow-md shadow-blue-200 active:scale-95">
-                <Search size={16} />
-                <span className="md:hidden">Tìm kiếm</span>
-                <span className="hidden md:inline">Tìm kiếm</span>
+              <button
+                onClick={handleSearch}
+                disabled={loading || searchLoading}
+                className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2.5 rounded-md text-sm font-bold flex items-center gap-2 transition w-full md:w-auto justify-center shadow-md shadow-blue-200 active:scale-95 disabled:opacity-70"
+              >
+                {loading || searchLoading ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />}
+                <span>Tìm kiếm</span>
               </button>
-
             </div>
           </div>
         </Container>
@@ -123,7 +178,7 @@ export default function SearchResultPage() {
             <p className="text-gray-600">
               Tìm thấy <strong className="text-gray-900">{rooms.length}</strong> phòng phù hợp
               {startDate && endDate && (
-                <span> cho <strong className="text-gray-900">{totalGuests} người</strong> từ <strong>{startDate.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' })}</strong> đến <strong>{endDate.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' })}</strong></span>
+                <span> từ <strong>{startDate.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' })}</strong> đến <strong>{endDate.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' })}</strong></span>
               )}
             </p>
 
@@ -139,8 +194,7 @@ export default function SearchResultPage() {
         {/* --- GRID LAYOUT --- */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
           <div className="hidden lg:block lg:col-span-1">
-            {/* TRUYỀN PROPS XUỐNG SIDEBAR */}
-            <FilterSidebar guests={guests} setGuests={setGuests} />
+            <FilterSidebar />
           </div>
           <div className="lg:col-span-3">
             {loading ? (
@@ -152,7 +206,7 @@ export default function SearchResultPage() {
               <div className="p-8 text-center bg-white rounded-xl shadow-sm border border-red-100">
                 <p className="text-red-500 font-medium mb-4">{error}</p>
                 <button
-                  onClick={() => window.location.reload()}
+                  onClick={handleSearch}
                   className="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition"
                 >
                   Thử lại
@@ -165,7 +219,12 @@ export default function SearchResultPage() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {rooms.map((room) => (
-                  <RoomCard key={room.id} room={room} />
+                  <RoomCard
+                    key={room.roomTypeId || room.id}
+                    room={room}
+                    startDate={startDate}
+                    endDate={endDate}
+                  />
                 ))}
               </div>
             )}

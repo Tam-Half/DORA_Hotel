@@ -1,31 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { Star, ChevronRight, Loader2 } from 'lucide-react';
-import roomTypeAPI from '../../services/roomType';
+import { useNavigate } from 'react-router-dom';
+import { roomTypeApi } from '../../services/roomType';
 
 export default function FeaturedRooms() {
-  const [rooms, setRooms] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const navigate = useNavigate();
+  const {
+    data: roomsResponse,
+    isLoading: loading,
+    error: rtkError
+  } = roomTypeApi.useGetAllRoomTypesQuery();
 
-  useEffect(() => {
-    const fetchRooms = async () => {
-      try {
-        setLoading(true);
-        const response = await roomTypeAPI.getAll();
-        // The API returns { data: [...] }
-        const roomData = response.data || [];
-        // Only show first 3 rooms as requested
-        setRooms(roomData.slice(0, 3));
-      } catch (err) {
-        console.error('Failed to fetch rooms:', err);
-        setError('Không thể tải danh sách phòng');
-      } finally {
-        setLoading(false);
-      }
-    };
+  const rooms = (roomsResponse?.data || []).slice(0, 3);
+  const error = rtkError ? 'Không thể tải danh sách phòng' : null;
 
-    fetchRooms();
-  }, []);
+  const handleBookNow = (room) => {
+    navigate(`/rooms/${room.id}`);
+  };
 
   return (
     <section className="py-20 bg-gray-50">
@@ -84,7 +73,10 @@ export default function FeaturedRooms() {
                         {new Intl.NumberFormat('vi-VN').format(room.base_price)}đ
                       </p>
                     </div>
-                    <button className="bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white px-4 py-2 rounded-lg font-semibold text-sm transition-colors">
+                    <button
+                      onClick={() => handleBookNow(room)}
+                      className="bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white px-4 py-2 rounded-lg font-semibold text-sm transition-colors"
+                    >
                       Đặt ngay
                     </button>
                   </div>

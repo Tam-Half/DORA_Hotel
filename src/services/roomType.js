@@ -1,14 +1,35 @@
-import api from './api';
+import { createApi } from '@reduxjs/toolkit/query/react';
+import { axiosBaseQuery } from './api';
 
-const roomTypeAPI = {
-    getAll: async () => {
-        try {
-            const response = await api.get('/room-type/');
-            return response.data;
-        } catch (error) {
-            throw error.response?.data || error.message;
-        }
-    },
-};
-
-export default roomTypeAPI;
+export const roomTypeApi = createApi({
+    reducerPath: 'roomTypeApi',
+    baseQuery: axiosBaseQuery(),
+    tagTypes: ['RoomType'],
+    endpoints: (builder) => ({
+        getAllRoomTypes: builder.query({
+            query: () => ({
+                url: '/room-type/',
+                method: 'GET',
+            }),
+            providesTags: (result) =>
+                result?.data
+                    ? [
+                        ...result.data.map(({ id }) => ({ type: 'RoomType', id })),
+                        { type: 'RoomType', id: 'LIST' },
+                    ]
+                    : [{ type: 'RoomType', id: 'LIST' }],
+        }),
+        getRoomTypeById: builder.query({
+            query: ({ id, params }) => ({
+                url: `/room-type/${id}`,
+                method: 'GET',
+                params,
+            }),
+            providesTags: (result, error, { id }) => [{ type: 'RoomType', id }],
+        }),
+    }),
+});
+export const {
+    useGetAllRoomTypesQuery,
+    useGetRoomTypeByIdQuery,
+} = roomTypeApi;

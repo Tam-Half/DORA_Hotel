@@ -51,18 +51,6 @@ export default function FilterSidebar() {
           ))}
         </div>
       </div>
-       {/* --- Số Người --- */}
-      <div className="border-t border-gray-100 pt-6">
-        <h4 className="font-semibold text-sm mb-3">Số người tối đa</h4>
-        <div className="space-y-3">
-          {[1, 2, 3, 4].map((num) => (
-            <label key={num} className="flex items-center gap-3 cursor-pointer group">
-              <input type="checkbox" className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
-              <span className="text-gray-600 text-sm group-hover:text-gray-900">{num} người</span>
-            </label>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }
