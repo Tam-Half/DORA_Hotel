@@ -6,7 +6,6 @@ import { useNavigate } from 'react-router-dom';
 export default function RoomInfoSidebar({ room }) {
   const navigate = useNavigate();
 
-  console.log('Room Info Sidebar received room:', room);
   return (
     <div className="w-full">
       {/* Nút Quay lại */}
@@ -21,8 +20,8 @@ export default function RoomInfoSidebar({ room }) {
       
       {/* Số phòng nổi bật */}
       <div className="flex items-baseline gap-2 mb-6">
-        <span className="text-3xl font-bold text-blue-600">P: 101</span>
-        <span className="text-gray-500 text-lg">Lầu: 01</span>
+        <span className="text-3xl font-bold text-blue-600">P: {room.room_number}</span>
+        <span className="text-gray-500 text-lg"> {room.floor.name}</span>
       </div>
 
       <div className="border-t border-gray-100 my-4"></div>
@@ -34,7 +33,7 @@ export default function RoomInfoSidebar({ room }) {
           <div className="mt-1 text-gray-400"><Users size={20} /></div>
           <div>
             <p className="text-xs font-bold text-gray-400 uppercase mb-1">Số người tối đa</p>
-            <p className="font-semibold text-gray-800">4 Người</p>
+            <p className="font-semibold text-gray-800">{room.roomType.capacity_people} Người</p>
           </div>
         </div>
 
@@ -43,7 +42,7 @@ export default function RoomInfoSidebar({ room }) {
           <div className="mt-1 text-gray-400"><Layout size={20} /></div>
           <div>
             <p className="text-xs font-bold text-gray-400 uppercase mb-1">Loại phòng</p>
-            <p className="font-semibold text-gray-800">Thường (Standard)</p>
+            <p className="font-semibold text-gray-800">{room.roomType.slug}</p>
           </div>
         </div>
 
@@ -53,7 +52,7 @@ export default function RoomInfoSidebar({ room }) {
           <div>
             <p className="text-xs font-bold text-gray-400 uppercase mb-1">Mô tả phòng</p>
             <p className="text-sm text-gray-600 leading-relaxed">
-              View đẹp hướng ra thành phố, đầy đủ tiện nghi, thoáng mát, yên tĩnh phù hợp cho gia đình hoặc nhóm bạn.
+              {room.roomType.description}
             </p>
           </div>
         </div>

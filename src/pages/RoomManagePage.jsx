@@ -2,8 +2,7 @@ import React from 'react';
 import { Building2, Moon } from 'lucide-react';
 import RoomInfoSidebar from '../components/admin/detailroom/RoomInfoSidebar';
 import CustomerInfoSection from '../components/admin/detailroom/CustomerInfoSection'; // <-- Đã đổi tên import
-import { useParams } from 'react-router-dom';
-// Header (Giữ nguyên)
+import { useLocation, Navigate } from 'react-router-dom';
 const AdminHeader = () => (
   <header className="bg-white border-b border-gray-200 h-16 px-6 flex items-center justify-between sticky top-0 z-50">
     <div className="flex items-center gap-2">
@@ -31,24 +30,23 @@ const AdminHeader = () => (
 );
 
 export default function RoomManagePage() {
-
-  const {rooms} = useParams();
-  console.log('RoomManagePage received room1:', rooms);
+  const location = useLocation();
+  const room = location.state;
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
       <AdminHeader />
-      
+
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
-          
+
           {/* CỘT TRÁI: THÔNG TIN PHÒNG */}
           <div className="lg:col-span-1 bg-white rounded-xl shadow-sm border border-gray-200 p-6 sticky top-24">
-            <RoomInfoSidebar room={rooms}/>
+            <RoomInfoSidebar room={room} />
           </div>
 
           {/* CỘT PHẢI: QUẢN LÝ KHÁCH HÀNG */}
           <div className="lg:col-span-3">
-            <CustomerInfoSection /> 
+            <CustomerInfoSection room={room} />
           </div>
 
         </div>
