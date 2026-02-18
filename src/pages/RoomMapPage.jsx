@@ -3,10 +3,12 @@ import React, { useState, forwardRef, useEffect, useMemo } from 'react';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import { ro, vi } from 'date-fns/locale';
-import { Plus, RotateCcw, Calendar } from 'lucide-react';
+import { Plus, RotateCcw, Calendar, ReceiptText } from 'lucide-react';
 import RoomMapSidebar from '../components/admin/maproom/RoomMapSidebar';
 import RoomCard from '../components/admin/maproom/RoomCard';
 import roomAPI from '../services/room';
+import ShiftDetailModal from '../components/admin/Model/ShiftDetailModal';
+
 import { useNavigate } from 'react-router-dom';
 
 // --- GIỮ NGUYÊN COMPONENT UI CỦA BẠN ---
@@ -31,6 +33,9 @@ export default function RoomMapPage() {
   const [loading, setLoading] = useState(true);
   const [rooms, setRooms] = useState([]);
 
+
+  const [isShiftModalOpen, setIsShiftModalOpen] = useState(false);
+
   useEffect(() => {
     const fetchRooms = async () => {
       try {
@@ -39,18 +44,18 @@ export default function RoomMapPage() {
         const rawData = Array.isArray(response) ? response : (response.data || []);
 
         const mappedData = rawData.map(room => {
-            let uiStatus = 'AVAILABLE'; // Mặc định là Trống (Xanh)
-            if (room.status === 'CHECKED_IN') {
-                uiStatus = 'BOOKED'; // Có khách (Xám)
-            } else if (room.status === 'MAINTENANCE') {
-                uiStatus = 'MAINTENANCE'; // Bảo trì (Cam)
-            }
+          let uiStatus = 'AVAILABLE'; // Mặc định là Trống (Xanh)
+          if (room.status === 'CHECKED_IN') {
+            uiStatus = 'BOOKED'; // Có khách (Xám)
+          } else if (room.status === 'MAINTENANCE') {
+            uiStatus = 'MAINTENANCE'; // Bảo trì (Cam)
+          }
 
-            return {
-                ...room,
-                ui_status: uiStatus,
-                guestName: room.current_guest 
-            };
+          return {
+            ...room,
+            ui_status: uiStatus,
+            guestName: room.current_guest
+          };
         });
 
         setRooms(mappedData);
@@ -154,12 +159,16 @@ export default function RoomMapPage() {
           <p className="text-sm text-gray-500">Xem và quản lý trạng thái phòng theo thời gian thực</p>
         </div>
         <div className="flex gap-3">
-          <button onClick={() => window.location.reload()} className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 flex items-center gap-2 text-gray-700">
-            <RotateCcw size={16} /> Làm mới
+          <button
+            onClick={() => setIsShiftModalOpen(true)}
+            className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 flex items-center gap-2 text-gray-700"
+          >
+            <ReceiptText size={18} className="text-blue-600" /> {/* Thêm icon cho đẹp */}
+            Xem Thông Tin Ca
           </button>
-          {/* <button className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 flex items-center gap-2 shadow-sm shadow-blue-200">
-            <Plus size={16} /> Thêm phòng mới
-          </button> */}
+          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 flex items-center gap-2 shadow-sm shadow-blue-200">
+            Kết Ca
+          </button>
         </div>
       </div>
 
@@ -207,8 +216,8 @@ export default function RoomMapPage() {
                   key={tab.id}
                   onClick={() => setFilterStatus(tab.id)}
                   className={`px-3 py-1.5 rounded-md text-xs font-bold flex items-center gap-2 transition-all ${filterStatus === tab.id
-                      ? 'bg-white text-gray-900 shadow-sm'
-                      : 'text-gray-500 hover:text-gray-700'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700'
                     }`}
                 >
                   {tab.dot && <span className={`w-2 h-2 rounded-full ${tab.dot}`}></span>}
@@ -243,6 +252,11 @@ export default function RoomMapPage() {
           </div>
         </div>
       </div>
+      <ShiftDetailModal 
+        isOpen={isShiftModalOpen} 
+        onClose={() => setIsShiftModalOpen(false)}
+        shiftId={1} 
+      />
     </div>
   );
 }
