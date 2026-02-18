@@ -13,7 +13,6 @@ import PaymentSuccessPage from "../pages/PaymentSuccessPage";
 import PaymentCancelPage from "../pages/PaymentCancelPage";
 
 
-import DashboardPage from "../pages/DashboardPage";
 
 export default function AppRoutes() {
     return (
