@@ -3,6 +3,11 @@ import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css"; // Import CSS của thư viện lịch
 import { ChevronDown, Minus, Plus } from 'lucide-react';
 import { vi } from 'date-fns/locale'; // Để lịch hiển thị tiếng Việt
+import { useNavigate } from 'react-router-dom';
+import { useCreateBookingMutation } from '../../services/booking';
+import { useCreatePayOSLinkMutation } from '../../services/payment';
+import { toast } from 'react-toastify';
+import { Loader2 } from 'lucide-react';
 
 // Component con để hiển thị từng dòng khách (Người lớn, Trẻ em...)
 const GuestCounter = ({ label, subLabel, value, onDecrease, onIncrease, max = 10 }) => (
@@ -34,6 +39,10 @@ const GuestCounter = ({ label, subLabel, value, onDecrease, onIncrease, max = 10
 );
 
 export default function BookingCard({ room, initialCheckIn, initialCheckOut }) {
+  const navigate = useNavigate();
+  const [createBooking, { isLoading: isBookingLoading }] = useCreateBookingMutation();
+  const [createPayOSLink, { isLoading: isPaymentLoading }] = useCreatePayOSLinkMutation();
+
   const [pricePerNight] = useState(room?.basePrice || room?.base_price || 2500000);
 
   // State cho Lịch (Ngày bắt đầu - Ngày kết thúc)
@@ -44,39 +53,46 @@ export default function BookingCard({ room, initialCheckIn, initialCheckOut }) {
       : new Date(new Date().setDate(new Date().getDate() + 3))
   );
 
-  // State cho Khách
-  const [guests, setGuests] = useState({ adults: 2, children: 1, infants: 0 });
-  const [isGuestOpen, setIsGuestOpen] = useState(false);
-  const guestDropdownRef = useRef(null); // Ref để phát hiện click ra ngoài
-
   // --- LOGIC TÍNH TOÁN ---
   // Tính số đêm
   const nights = Math.max(1, Math.round((endDate - startDate) / (1000 * 60 * 60 * 24)));
 
-  const cleaningFee = 200000;
-  const totalPrice = (pricePerNight * nights) + cleaningFee;
+  const totalPrice = (pricePerNight * nights);
 
   // Format tiền tệ
   const formatCurrency = (amount) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount).replace('₫', 'đ');
 
-  // Format hiển thị text "Khách"
-  const getGuestLabel = () => {
-    let text = `${guests.adults} người lớn`;
-    if (guests.children > 0) text += `, ${guests.children} trẻ em`;
-    if (guests.infants > 0) text += `, ${guests.infants} em bé`;
-    return text;
+  const handleBooking = async () => {
+    try {
+      // 1. Create Booking
+      const bookingPayload = {
+        check_in_date: startDate.toISOString(),
+        check_out_date: endDate.toISOString(),
+        rooms: [{ roomTypeId: room.id, quantity: 1 }], // Defaulting to 1 room for now
+        // Note: For a real app, we would gather guest info here or from user profile
+        guest_name: "Khách lẻ",
+        note: `Đặt phòng từ Website - ${nights} đêm`
+      };
+
+      const bookingResult = await createBooking(bookingPayload).unwrap();
+      const bookingId = bookingResult.data.id;
+
+      // 2. Create PayOS Payment Link
+      const paymentResult = await createPayOSLink({ booking_id: bookingId }).unwrap();
+
+      if (paymentResult.data && paymentResult.data.checkoutUrl) {
+        toast.info("Đang chuyển hướng đến trang thanh toán...");
+        window.location.href = paymentResult.data.checkoutUrl;
+      } else {
+        throw new Error("Không lấy được link thanh toán PayOS");
+      }
+    } catch (error) {
+      console.error("Booking error:", error);
+      toast.error(error.data?.message || "Có lỗi xảy ra khi đặt phòng. Vui lòng thử lại.");
+    }
   };
 
-  // --- EFFECT: ĐÓNG MENU KHI CLICK RA NGOÀI ---
-  useEffect(() => {
-    function handleClickOutside(event) {
-      if (guestDropdownRef.current && !guestDropdownRef.current.contains(event.target)) {
-        setIsGuestOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  const isProcessing = isBookingLoading || isPaymentLoading;
 
   return (
     <div className="bg-white rounded-xl shadow-xl border border-gray-200 p-6 w-full max-w-[380px]">
@@ -92,8 +108,8 @@ export default function BookingCard({ room, initialCheckIn, initialCheckOut }) {
       <div className=" rounded-xl mb-4 relative bg-white z-10">
 
         {/* DATE PICKER */}
-        <div className="flex ">
-          <div className="w-1/2 p-3 hover:bg-gray-50 cursor-pointer relative">
+        <div className="flex border border-gray-200 rounded-t-xl overflow-hidden">
+          <div className="w-1/2 p-3 hover:bg-gray-50 cursor-pointer relative border-r border-gray-200">
             <label className="block text-[10px] font-bold text-gray-700 uppercase mb-1">Nhận phòng</label>
             <DatePicker
               selected={startDate}
@@ -132,9 +148,14 @@ export default function BookingCard({ room, initialCheckIn, initialCheckOut }) {
         </div>
       </div>
 
-      {/* Button & Chi tiết giá (Giữ nguyên logic cũ) */}
-      <button className="w-full bg-rose-500 hover:bg-rose-600 transition text-white font-bold py-3.5 rounded-lg text-base shadow-md mb-3">
-        Đặt phòng ngay
+      {/* Button & Chi tiết giá */}
+      <button
+        disabled={isProcessing}
+        onClick={handleBooking}
+        className={`w-full ${isProcessing ? 'bg-gray-400' : 'bg-rose-500 hover:bg-rose-600'} transition text-white font-bold py-3.5 rounded-lg text-base shadow-md mb-3 flex items-center justify-center gap-2`}
+      >
+        {isProcessing && <Loader2 size={18} className="animate-spin" />}
+        {isProcessing ? 'Đang xử lý...' : 'Đặt phòng ngay'}
       </button>
 
       <div className="space-y-3 pt-4 mt-4">
