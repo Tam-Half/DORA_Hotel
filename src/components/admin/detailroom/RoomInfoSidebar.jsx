@@ -1,12 +1,17 @@
 // src/features/admin/components/RoomInfoSidebar.jsx
 import React from 'react';
 import { Users, Layout, FileText, Info, ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
-export default function RoomInfoSidebar() {
+export default function RoomInfoSidebar({ room }) {
+  const navigate = useNavigate();
+
   return (
     <div className="w-full">
       {/* Nút Quay lại */}
-      <button className="flex items-center gap-2 text-gray-500 hover:text-gray-900 mb-6 transition-colors font-medium">
+      <button
+        onClick={() => navigate(-1)}
+       className="flex items-center gap-2 text-gray-500 hover:text-gray-900 mb-6 transition-colors font-medium">
         <ArrowLeft size={18} /> Quay lại
       </button>
 
@@ -15,8 +20,8 @@ export default function RoomInfoSidebar() {
       
       {/* Số phòng nổi bật */}
       <div className="flex items-baseline gap-2 mb-6">
-        <span className="text-3xl font-bold text-blue-600">P: 101</span>
-        <span className="text-gray-500 text-lg">Lầu: 01</span>
+        <span className="text-3xl font-bold text-blue-600">P: {room.room_number}</span>
+        <span className="text-gray-500 text-lg"> {room.floor.name}</span>
       </div>
 
       <div className="border-t border-gray-100 my-4"></div>
@@ -28,7 +33,7 @@ export default function RoomInfoSidebar() {
           <div className="mt-1 text-gray-400"><Users size={20} /></div>
           <div>
             <p className="text-xs font-bold text-gray-400 uppercase mb-1">Số người tối đa</p>
-            <p className="font-semibold text-gray-800">4 Người</p>
+            <p className="font-semibold text-gray-800">{room.roomType.capacity_people} Người</p>
           </div>
         </div>
 
@@ -37,7 +42,7 @@ export default function RoomInfoSidebar() {
           <div className="mt-1 text-gray-400"><Layout size={20} /></div>
           <div>
             <p className="text-xs font-bold text-gray-400 uppercase mb-1">Loại phòng</p>
-            <p className="font-semibold text-gray-800">Thường (Standard)</p>
+            <p className="font-semibold text-gray-800">{room.roomType.slug}</p>
           </div>
         </div>
 
@@ -47,7 +52,7 @@ export default function RoomInfoSidebar() {
           <div>
             <p className="text-xs font-bold text-gray-400 uppercase mb-1">Mô tả phòng</p>
             <p className="text-sm text-gray-600 leading-relaxed">
-              View đẹp hướng ra thành phố, đầy đủ tiện nghi, thoáng mát, yên tĩnh phù hợp cho gia đình hoặc nhóm bạn.
+              {room.roomType.description}
             </p>
           </div>
         </div>
