@@ -3,6 +3,8 @@ import { setupListeners } from '@reduxjs/toolkit/query';
 import { availabilityApi } from '../services/availability';
 import { extraServiceApi } from '../services/extraService';
 import { roomTypeApi } from '../services/roomType';
+import { bookingApi } from '../services/booking';
+import { paymentApi } from '../services/payment';
 
 export const store = configureStore({
     reducer: {
@@ -10,6 +12,8 @@ export const store = configureStore({
         [availabilityApi.reducerPath]: availabilityApi.reducer,
         [extraServiceApi.reducerPath]: extraServiceApi.reducer,
         [roomTypeApi.reducerPath]: roomTypeApi.reducer,
+        [bookingApi.reducerPath]: bookingApi.reducer,
+        [paymentApi.reducerPath]: paymentApi.reducer,
     },
     // Adding the api middleware enables caching, invalidation, polling,
     // and other useful features of `rtk-query`.
@@ -17,7 +21,9 @@ export const store = configureStore({
         getDefaultMiddleware().concat(
             availabilityApi.middleware,
             extraServiceApi.middleware,
-            roomTypeApi.middleware
+            roomTypeApi.middleware,
+            bookingApi.middleware,
+            paymentApi.middleware
         ),
 });
 

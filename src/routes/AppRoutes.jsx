@@ -7,6 +7,9 @@ import BookingHistoryPage from "../pages/BookingHistoryPage";
 import HomePage from "../pages/HomePage";
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
+import PaymentSuccessPage from "../pages/PaymentSuccessPage";
+import PaymentCancelPage from "../pages/PaymentCancelPage";
+
 export default function AppRoutes() {
     return (
         <BrowserRouter>
@@ -20,6 +23,8 @@ export default function AppRoutes() {
                 <Route path="/admin/detailroom" element={<RoomManagePage />} />
                 <Route path="/admin" element={<RoomMapPage />} />
                 <Route path="/user/historybooking" element={<BookingHistoryPage />} />
+                <Route path="/payment/success" element={<PaymentSuccessPage />} />
+                <Route path="/payment/cancel" element={<PaymentCancelPage />} />
                 {/* Có thể thêm route khác sau này */}
             </Routes>
         </BrowserRouter>

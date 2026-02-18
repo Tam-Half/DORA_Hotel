@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { roomTypeApi } from '../../services/roomType';
+import { ChevronRight, Loader2, Star } from 'lucide-react';
 
 export default function FeaturedRooms() {
   const navigate = useNavigate();
