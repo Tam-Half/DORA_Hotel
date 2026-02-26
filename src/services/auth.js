@@ -11,6 +11,7 @@ const authAPI = {
             if (refresh_token) {
                 localStorage.setItem('refresh_token', refresh_token);
             }
+            localStorage.setItem('user', JSON.stringify(response.data));
             return response.data;
         } catch (error) {
             throw error.response?.data || error.message;
@@ -20,6 +21,7 @@ const authAPI = {
     logout: () => {
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
+        localStorage.removeItem('user');
     },
 
     getToken: () => {

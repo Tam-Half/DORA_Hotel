@@ -8,10 +8,10 @@ import RoomMapSidebar from '../components/admin/maproom/RoomMapSidebar';
 import RoomCard from '../components/admin/maproom/RoomCard';
 import roomAPI from '../services/room';
 import ShiftDetailModal from '../components/admin/Model/ShiftDetailModal';
+import EndShiftModal from '../components/admin/Model/EndShiftModal';
+import shiftAPI from '../services/shift';
 
 import { useNavigate } from 'react-router-dom';
-
-// --- GIỮ NGUYÊN COMPONENT UI CỦA BẠN ---
 const CustomDateInput = forwardRef(({ value, onClick }, ref) => (
   <div className="relative w-full sm:w-auto cursor-pointer" onClick={onClick} ref={ref}>
     <input
@@ -35,6 +35,8 @@ export default function RoomMapPage() {
 
 
   const [isShiftModalOpen, setIsShiftModalOpen] = useState(false);
+  const [isEndShiftModalOpen, setIsEndShiftModalOpen] = useState(false);
+  const [currentShiftId, setCurrentShiftId] = useState(null);
 
   useEffect(() => {
     const fetchRooms = async () => {
@@ -68,7 +70,26 @@ export default function RoomMapPage() {
     fetchRooms();
   }, []);
 
+  useEffect(() => {
+    const fetchCurrentShift = async () => {
+      try {
+        // Lấy staffId thẳng từ LocalStorage
+        const user = JSON.parse(localStorage.getItem('user'));
+        console.log("Staff ID đã lấy:", user.account.id); // Debug log
+        if (!user) return;
 
+        const response = await shiftAPI.getCurrentShift(user.account.id);
+        setCurrentShiftId(response.id);
+
+      } catch (error) {
+        console.error("Lỗi khi lấy ca hiện tại:", error);
+      }
+    };
+
+    fetchCurrentShift();
+  }, []);
+
+ 
   // 2. Tự động tính toán số lượng (SỬA LẠI LOGIC ĐẾM DỰA TRÊN MAPPING MỚI)
   const statusCounts = useMemo(() => {
     const initialCounts = {
@@ -166,8 +187,11 @@ export default function RoomMapPage() {
             <ReceiptText size={18} className="text-blue-600" /> {/* Thêm icon cho đẹp */}
             Xem Thông Tin Ca
           </button>
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 flex items-center gap-2 shadow-sm shadow-blue-200">
-            Kết Ca
+          <button
+            onClick={() => setIsEndShiftModalOpen(true)} // Mở modal kết ca
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 flex items-center gap-2 shadow-sm shadow-blue-200 transition"
+          >
+            <RotateCcw size={18} /> Kết Ca
           </button>
         </div>
       </div>
@@ -252,10 +276,15 @@ export default function RoomMapPage() {
           </div>
         </div>
       </div>
-      <ShiftDetailModal 
-        isOpen={isShiftModalOpen} 
+      <ShiftDetailModal
+        isOpen={isShiftModalOpen}
         onClose={() => setIsShiftModalOpen(false)}
-        shiftId={1} 
+        shiftId={currentShiftId}
+      />
+      <EndShiftModal
+        isOpen={isEndShiftModalOpen}
+        onClose={() => setIsEndShiftModalOpen(false)}
+        shiftId={currentShiftId}
       />
     </div>
   );
