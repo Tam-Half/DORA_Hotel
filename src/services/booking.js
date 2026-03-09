@@ -46,7 +46,7 @@ export const {
     useDeleteBookingMutation,
 } = bookingApi;
 import api from "./api";
-const bookingAPI = { 
+const bookingAPI = {
     getAll: async (params) => {
         try {
             const response = await api.get('/booking/', { params });
@@ -54,7 +54,18 @@ const bookingAPI = {
         } catch (error) {
             throw error.response?.data || error.message;
         }
+    },
+    updateRoomStatus: async (bookingId, status , allocationId) => {
+        try {
+            const response = await api.put(`/bookings/${bookingId}/room-status`, {
+                allocationId: allocationId,
+                status: status
+            });
+            return response.data;
+        } catch (error) {
+            throw error.response?.data || error.message;
+        }
     }
- };
+};
 
 export default bookingAPI;

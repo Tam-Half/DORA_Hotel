@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 
 export default function RoomInfoSidebar({ room }) {
   const navigate = useNavigate();
+  console.log('Room data received in RoomInfoSidebar:', room);
 
   return (
     <div className="w-full">
@@ -33,7 +34,7 @@ export default function RoomInfoSidebar({ room }) {
           <div className="mt-1 text-gray-400"><Users size={20} /></div>
           <div>
             <p className="text-xs font-bold text-gray-400 uppercase mb-1">Số người tối đa</p>
-            <p className="font-semibold text-gray-800">{room.roomType.capacity_people} Người</p>
+            <p className="font-semibold text-gray-800">{room.roomType?.capacity_people} Người</p>
           </div>
         </div>
 
@@ -42,7 +43,7 @@ export default function RoomInfoSidebar({ room }) {
           <div className="mt-1 text-gray-400"><Layout size={20} /></div>
           <div>
             <p className="text-xs font-bold text-gray-400 uppercase mb-1">Loại phòng</p>
-            <p className="font-semibold text-gray-800">{room.roomType.slug}</p>
+            <p className="font-semibold text-gray-800">{room.roomType?.slug}</p>
           </div>
         </div>
 

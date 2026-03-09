@@ -3,6 +3,7 @@ import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import { Search, Calendar, Users, ChevronLeft, ChevronRight, Filter, Clock, CheckCircle, Hourglass } from 'lucide-react';
 import roomAPI from '../../../services/room'; // Đảm bảo đường dẫn đúng
+import BookingDetailModal from '../Model/BookingModalDetail'; // Đảm bảo đường dẫn đúng
 
 const ITEMS_PER_PAGE = 5;
 
@@ -14,6 +15,8 @@ const DateInput = forwardRef(({ value, onClick, placeholder }, ref) => (
 ));
 
 export default function CustomerInfoSection({ room }) {
+
+
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
 
@@ -24,6 +27,37 @@ export default function CustomerInfoSection({ room }) {
 
   // Dữ liệu đã được làm phẳng (gộp tất cả lại thành 1 mảng để dễ filter)
   const [allBookings, setAllBookings] = useState([]);
+
+ // State BookingModalDetail 
+  const [selectedBooking, setSelectedBooking] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleViewDetail = (bookingData) => {
+    setSelectedBooking(bookingData);
+    setIsModalOpen(true);
+  };
+
+  // Hàm xử lý API Check-in
+  const handleCheckIn = async (bookingCode) => {
+    try {
+      // await api.post(`/bookings/${bookingCode}/check-in`);
+      setIsModalOpen(false);
+      // Gọi lại hàm fetch lại danh sách booking ở đây...
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  // Hàm xử lý API Check-out
+  const handleCheckOut = async (bookingCode) => {
+    try {
+      // await api.post(`/bookings/${bookingCode}/check-out`);
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
 
   // Hàm xử lý dữ liệu trả về từ API
   const processTimelineData = (data) => {
@@ -69,7 +103,6 @@ export default function CustomerInfoSection({ room }) {
 
       try {
         setLoading(true);
-        console.log('Fetching rooms timeline for room ID:', roomIdToFetch);
 
         const response = await roomAPI.getTimeLine(roomIdToFetch);
         console.log('API Response:', response);
@@ -141,7 +174,7 @@ export default function CustomerInfoSection({ room }) {
               <Users size={20} className="text-blue-600" /> Thông tin khách hàng
             </h3>
             <span className="bg-gray-100 text-gray-600 text-xs font-bold px-2 py-1 rounded">
-              {totalItems} khách
+              {totalItems} Đơn
             </span>
           </div>
 
@@ -238,9 +271,9 @@ export default function CustomerInfoSection({ room }) {
 
                   <td className="p-4 text-right">
                     {item.display_type === 'CURRENT' ? (
-                      <button className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-1.5 rounded shadow-sm transition-all hover:shadow">Chi tiết</button>
+                      <button className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-1.5 rounded shadow-sm transition-all hover:shadow" onClick={() => handleViewDetail(item)}>Chi tiết</button>
                     ) : (
-                      <button className="text-gray-400 text-xs font-semibold px-3 py-1.5 border border-gray-200 rounded hover:bg-gray-50">Xem lại</button>
+                      <button className="text-gray-400 text-xs font-semibold px-3 py-1.5 border border-gray-200 rounded hover:bg-gray-50" onClick={() => handleViewDetail(item)}>Xem lại</button>
                     )}
                   </td>
                 </tr>
@@ -293,6 +326,13 @@ export default function CustomerInfoSection({ room }) {
           </div>
         )}
       </div>
+      <BookingDetailModal 
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        booking={selectedBooking}
+        onCheckIn={handleCheckIn}
+        onCheckOut={handleCheckOut}
+      />
     </div>
   );
 }
