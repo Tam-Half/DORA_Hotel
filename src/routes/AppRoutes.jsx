@@ -10,6 +10,7 @@ import RegisterPage from "../pages/RegisterPage";
 import DashboardPage from "../pages/DashboardPage";
 import PaymentSuccessPage from "../pages/PaymentSuccessPage";
 import PaymentCancelPage from "../pages/PaymentCancelPage";
+import CheckoutPage from "../pages/CheckoutPage";
 
 
 
@@ -29,6 +30,7 @@ export default function AppRoutes() {
                 <Route path="/user/historybooking" element={<BookingHistoryPage />} />
                 <Route path="/payment/success" element={<PaymentSuccessPage />} />
                 <Route path="/payment/cancel" element={<PaymentCancelPage />} />
+                <Route path="/checkout" element={<CheckoutPage />} />
                 {/* Có thể thêm route khác sau này */}
                 <Route path="/admin/dashboard" element={<DashboardPage />} />
 

@@ -62,34 +62,16 @@ export default function BookingCard({ room, initialCheckIn, initialCheckOut }) {
   // Format tiền tệ
   const formatCurrency = (amount) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount).replace('₫', 'đ');
 
-  const handleBooking = async () => {
-    try {
-      // 1. Create Booking
-      const bookingPayload = {
-        check_in_date: startDate.toISOString(),
-        check_out_date: endDate.toISOString(),
-        rooms: [{ roomTypeId: room.id, quantity: 1 }], // Defaulting to 1 room for now
-        // Note: For a real app, we would gather guest info here or from user profile
-        guest_name: "Khách lẻ",
-        note: `Đặt phòng từ Website - ${nights} đêm`
-      };
-
-      const bookingResult = await createBooking(bookingPayload).unwrap();
-      const bookingId = bookingResult.data.id;
-
-      // 2. Create PayOS Payment Link
-      const paymentResult = await createPayOSLink({ booking_id: bookingId }).unwrap();
-
-      if (paymentResult.data && paymentResult.data.checkoutUrl) {
-        toast.info("Đang chuyển hướng đến trang thanh toán...");
-        window.location.href = paymentResult.data.checkoutUrl;
-      } else {
-        throw new Error("Không lấy được link thanh toán PayOS");
+  const handleBooking = () => {
+    navigate('/checkout', {
+      state: {
+        room,
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
+        nights,
+        totalPrice
       }
-    } catch (error) {
-      console.error("Booking error:", error);
-      toast.error(error.data?.message || "Có lỗi xảy ra khi đặt phòng. Vui lòng thử lại.");
-    }
+    });
   };
 
   const isProcessing = isBookingLoading || isPaymentLoading;
