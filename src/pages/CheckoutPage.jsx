@@ -1,25 +1,45 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useGetAllExtraServicesQuery } from '../services/extraService';
 import { useCreateBookingMutation } from '../services/booking';
 import { useCreatePayOSLinkMutation } from '../services/payment';
+import { useGetRoomTypeByIdQuery } from '../services/roomType';
 import { toast } from 'react-toastify';
 import { ChevronLeft, CreditCard, User, ShieldCheck, Plus, Minus, Info, Loader2 } from 'lucide-react';
 
 export default function CheckoutPage() {
     const location = useLocation();
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const { user } = useAuth();
 
-    // Data passed from BookingCard
-    const { room, startDate, endDate, nights, totalPrice: initialTotalPrice } = location.state || {};
+    // Support deep-linking from Chatbot
+    const pRoomTypeId = searchParams.get('roomTypeId');
+    const pCheckin = searchParams.get('checkin');
+    const pCheckout = searchParams.get('checkout');
+    const pName = searchParams.get('name');
+    const pEmail = searchParams.get('email');
+    const pPhone = searchParams.get('phone');
 
-    const [bookingType, setBookingType] = useState('self'); // 'self' or 'others'
+    const state = location.state || {};
+    const [room, setRoom] = useState(state.room);
+    const [startDate, setStartDate] = useState(state.startDate || pCheckin);
+    const [endDate, setEndDate] = useState(state.endDate || pCheckout);
+    const [nights, setNights] = useState(state.nights || 0);
+    const [totalPrice, setTotalPrice] = useState(state.totalPrice || 0);
+
+    // Fetch room type if missing state
+    const { data: roomTypeResult, isLoading: isRoomLoading } = useGetRoomTypeByIdQuery(
+        { id: pRoomTypeId },
+        { skip: !!room || !pRoomTypeId }
+    );
+
+    const [bookingType, setBookingType] = useState(pName || pEmail || pPhone ? 'others' : 'self'); // 'self' or 'others'
     const [guestInfo, setGuestInfo] = useState({
-        name: '',
-        email: '',
-        phone: ''
+        name: pName || '',
+        email: pEmail || '',
+        phone: pPhone || ''
     });
 
     const [selectedServices, setSelectedServices] = useState([]);
@@ -29,10 +49,35 @@ export default function CheckoutPage() {
     const [createPayOSLink, { isLoading: isPaymentLoading }] = useCreatePayOSLinkMutation();
 
     useEffect(() => {
-        if (!location.state) {
+        if (!location.state && !pRoomTypeId) {
             navigate('/');
         }
-    }, [location.state, navigate]);
+    }, [location.state, pRoomTypeId, navigate]);
+
+    // Update room info from fetch result
+    useEffect(() => {
+        if (!room && roomTypeResult?.data) {
+            setRoom(roomTypeResult.data);
+        }
+    }, [room, roomTypeResult]);
+
+    // Calculate nights and price if derived from params
+    useEffect(() => {
+        if (room && startDate && endDate && (!nights || !totalPrice)) {
+            try {
+                const start = new Date(startDate);
+                const end = new Date(endDate);
+                const diffTime = Math.abs(end - start);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                if (diffDays > 0) {
+                    setNights(diffDays);
+                    setTotalPrice(diffDays * (room.base_price || room.price || 0));
+                }
+            } catch (e) {
+                console.error("Date calculation error", e);
+            }
+        }
+    }, [room, startDate, endDate, nights, totalPrice]);
 
     useEffect(() => {
         if (bookingType === 'self' && user) {
@@ -42,9 +87,12 @@ export default function CheckoutPage() {
                 phone: user.phone_number || ''
             });
         } else if (bookingType === 'others') {
-            setGuestInfo({ name: '', email: '', phone: '' });
+            // Only reset if we don't have param-provided info
+            if (!pName && !pEmail && !pPhone) {
+                setGuestInfo({ name: '', email: '', phone: '' });
+            }
         }
-    }, [bookingType, user]);
+    }, [bookingType, user, pName, pEmail, pPhone]);
 
     const handleServiceToggle = (service) => {
         setSelectedServices(prev => {
@@ -70,7 +118,7 @@ export default function CheckoutPage() {
     };
 
     const servicesTotal = selectedServices.reduce((sum, s) => sum + (Number(s.base_price) * s.quantity || 0), 0);
-    const grandTotal = (initialTotalPrice || 0) + servicesTotal;
+    const grandTotal = (totalPrice || 0) + servicesTotal;
 
     const formatCurrency = (amount) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount).replace('₫', 'đ');
 
@@ -108,6 +156,12 @@ export default function CheckoutPage() {
             toast.error(error.data?.message || "Có lỗi xảy ra. Vui lòng thử lại.");
         }
     };
+
+    if (isRoomLoading) return (
+        <div className="min-h-screen flex items-center justify-center">
+            <Loader2 className="animate-spin text-rose-500" size={40} />
+        </div>
+    );
 
     if (!room) return null;
 
@@ -290,7 +344,7 @@ export default function CheckoutPage() {
                         <div className="space-y-4 mb-8">
                             <div className="flex justify-between text-sm">
                                 <span className="text-gray-500">Giá phòng ({nights} đêm)</span>
-                                <span className="font-medium text-gray-900">{formatCurrency(initialTotalPrice)}</span>
+                                <span className="font-medium text-gray-900">{formatCurrency(totalPrice)}</span>
                             </div>
                             {selectedServices.length > 0 && (
                                 <div className="space-y-2">

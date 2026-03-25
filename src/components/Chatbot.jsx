@@ -83,7 +83,25 @@ const Chatbot = () => {
                                         : 'bg-gray-100 text-gray-800 rounded-tl-sm border border-gray-200'
                                     }`}
                                 >
-                                    <p className="text-[15px] leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                                    <p className="text-[15px] leading-relaxed whitespace-pre-wrap">
+                                        {msg.content.split(/(\[.*?\]\(.*?\))/g).map((part, i) => {
+                                            const match = part.match(/\[(.*?)\]\((.*?)\)/);
+                                            if (match) {
+                                                return (
+                                                    <a 
+                                                        key={i} 
+                                                        href={match[2]} 
+                                                        className="text-rose-600 font-bold hover:underline underline-offset-4"
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                    >
+                                                        {match[1]}
+                                                    </a>
+                                                );
+                                            }
+                                            return part;
+                                        })}
+                                    </p>
                                 </div>
                             </div>
                         ))}
