@@ -5,6 +5,7 @@ import { extraServiceApi } from '../services/extraService';
 import { roomTypeApi } from '../services/roomType';
 import { bookingApi } from '../services/booking';
 import { paymentApi } from '../services/payment';
+import { chatApi } from '../services/chat';
 
 export const store = configureStore({
     reducer: {
@@ -14,6 +15,7 @@ export const store = configureStore({
         [roomTypeApi.reducerPath]: roomTypeApi.reducer,
         [bookingApi.reducerPath]: bookingApi.reducer,
         [paymentApi.reducerPath]: paymentApi.reducer,
+        [chatApi.reducerPath]: chatApi.reducer,
     },
     // Adding the api middleware enables caching, invalidation, polling,
     // and other useful features of `rtk-query`.
@@ -23,7 +25,8 @@ export const store = configureStore({
             extraServiceApi.middleware,
             roomTypeApi.middleware,
             bookingApi.middleware,
-            paymentApi.middleware
+            paymentApi.middleware,
+            chatApi.middleware
         ),
 });
 

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Bot, X, Send, Loader2 } from 'lucide-react';
-import api from '../services/api';
+import { useSendMessageMutation } from '../services/chat';
 
 const Chatbot = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -8,7 +8,7 @@ const Chatbot = () => {
         { role: 'ai', content: 'Xin chào! Tôi là trợ lý ảo của Dora Hotel. Tôi có thể giúp gì cho bạn?' }
     ]);
     const [inputStr, setInputStr] = useState('');
-    const [isTyping, setIsTyping] = useState(false);
+    const [sendMessageAPI, { isLoading: isTyping }] = useSendMessageMutation();
     const messagesEndRef = useRef(null);
 
     const scrollToBottom = () => {
@@ -26,22 +26,19 @@ const Chatbot = () => {
         const userMessage = inputStr.trim();
         setInputStr('');
         setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
-        setIsTyping(true);
 
         try {
-            // Gọi API Backend Node (Proxy chuyển tiếp tới n8n)
-            const response = await api.post('/chat', { message: userMessage });
+            // Gọi API bằng RTK Query
+            const response = await sendMessageAPI({ message: userMessage }).unwrap();
             
             // output trả về từ giả định theo n8n basic webhook response
-            // Bạn có thể cần điều chỉnh "response.data.output" cho chuẩn cấu trúc JSON mà n8n thực sự trả ra.
-            const aiReply = response.data?.output || response.data?.text || response.data || "Xin lỗi, tôi chưa hiểu rõ yêu cầu.";
+            // Bạn có thể cần điều chỉnh "response.output" cho chuẩn cấu trúc JSON mà n8n thực sự trả ra.
+            const aiReply = response?.output || response?.text || response || "Xin lỗi, tôi chưa hiểu rõ yêu cầu.";
             
             setMessages(prev => [...prev, { role: 'ai', content: typeof aiReply === 'string' ? aiReply : JSON.stringify(aiReply) }]);
         } catch (error) {
             console.error('Error sending message to AI:', error);
             setMessages(prev => [...prev, { role: 'ai', content: 'Xin lỗi, hệ thống đang bận. Vui lòng thử lại sau.' }]);
-        } finally {
-            setIsTyping(false);
         }
     };
 

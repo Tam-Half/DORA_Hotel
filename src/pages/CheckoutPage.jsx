@@ -5,7 +5,7 @@ import { useGetAllExtraServicesQuery } from '../services/extraService';
 import { useCreateBookingMutation } from '../services/booking';
 import { useCreatePayOSLinkMutation } from '../services/payment';
 import { toast } from 'react-toastify';
-import { ChevronLeft, CreditCard, User, ShieldCheck, Plus, Info, Loader2 } from 'lucide-react';
+import { ChevronLeft, CreditCard, User, ShieldCheck, Plus, Minus, Info, Loader2 } from 'lucide-react';
 
 export default function CheckoutPage() {
     const location = useLocation();
@@ -52,12 +52,24 @@ export default function CheckoutPage() {
             if (exists) {
                 return prev.filter(s => s.id !== service.id);
             } else {
-                return [...prev, service];
+                return [...prev, { ...service, quantity: 1 }];
             }
         });
     };
 
-    const servicesTotal = selectedServices.reduce((sum, s) => sum + (Number(s.base_price) || 0), 0);
+    const updateServiceQuantity = (serviceId, delta) => {
+        setSelectedServices(prev => 
+            prev.map(s => {
+                if (s.id === serviceId) {
+                    const newQty = Math.max(1, s.quantity + delta);
+                    return { ...s, quantity: newQty };
+                }
+                return s;
+            })
+        );
+    };
+
+    const servicesTotal = selectedServices.reduce((sum, s) => sum + (Number(s.base_price) * s.quantity || 0), 0);
     const grandTotal = (initialTotalPrice || 0) + servicesTotal;
 
     const formatCurrency = (amount) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount).replace('₫', 'đ');
@@ -76,8 +88,8 @@ export default function CheckoutPage() {
                 guest_name: guestInfo.name,
                 guest_email: guestInfo.email,
                 guest_phone: guestInfo.phone,
-                extra_services: selectedServices.map(s => ({ service_id: s.id, quantity: 1 })),
-                note: `Website booking - ${nights} nights. Services: ${selectedServices.map(s => s.name).join(', ') || 'None'}`
+                extra_services: selectedServices.map(s => ({ service_id: s.id, quantity: s.quantity })),
+                note: `Website booking - ${nights} nights. Services: ${selectedServices.map(s => `${s.name} (x${s.quantity})`).join(', ') || 'None'}`
             };
 
             const bookingResult = await createBooking(bookingPayload).unwrap();
@@ -205,23 +217,51 @@ export default function CheckoutPage() {
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {servicesResult?.data?.map((service) => (
-                                    <div
-                                        key={service.id}
-                                        onClick={() => handleServiceToggle(service)}
-                                        className={`flex items-center justify-between p-4 rounded-xl border-2 cursor-pointer transition ${selectedServices.find(s => s.id === service.id) ? 'border-blue-500 bg-blue-50' : 'border-gray-50 hover:border-gray-100 bg-gray-50/50'}`}
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <div className={`w-5 h-5 rounded border flex items-center justify-center transition ${selectedServices.find(s => s.id === service.id) ? 'bg-blue-500 border-blue-500 text-white' : 'border-gray-300 bg-white'}`}>
-                                                {selectedServices.find(s => s.id === service.id) && <ShieldCheck size={14} />}
-                                            </div>
-                                            <div>
-                                                <p className="font-bold text-sm text-gray-900">{service.name}</p>
-                                                <p className="text-xs text-blue-600 font-semibold">+{formatCurrency(service.base_price)}</p>
+                                {servicesResult?.data?.map((service) => {
+                                    const selectedService = selectedServices.find(s => s.id === service.id);
+                                    const isSelected = !!selectedService;
+                                    
+                                    return (
+                                        <div
+                                            key={service.id}
+                                            className={`flex flex-col p-4 rounded-xl border-2 transition ${isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-50 hover:border-gray-100 bg-gray-50/50'}`}
+                                        >
+                                            <div className="flex items-center justify-between mb-2">
+                                                <div 
+                                                    className="flex items-center gap-3 cursor-pointer flex-1"
+                                                    onClick={() => handleServiceToggle(service)}
+                                                >
+                                                    <div className={`w-5 h-5 rounded border flex items-center justify-center transition ${isSelected ? 'bg-blue-500 border-blue-500 text-white' : 'border-gray-300 bg-white'}`}>
+                                                        {isSelected && <ShieldCheck size={14} />}
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-bold text-sm text-gray-900">{service.name}</p>
+                                                        <p className="text-xs text-blue-600 font-semibold">+{formatCurrency(service.base_price)}</p>
+                                                    </div>
+                                                </div>
+                                                
+                                                {isSelected && (
+                                                    <div className="flex items-center gap-3 bg-white px-2 py-1 rounded-lg border border-blue-100 shadow-sm">
+                                                        <button 
+                                                            onClick={(e) => { e.stopPropagation(); updateServiceQuantity(service.id, -1); }}
+                                                            className="text-blue-600 hover:bg-blue-50 p-1 rounded transition"
+                                                            disabled={selectedService.quantity <= 1}
+                                                        >
+                                                            <Minus size={14} />
+                                                        </button>
+                                                        <span className="font-bold text-sm min-w-[20px] text-center">{selectedService.quantity}</span>
+                                                        <button 
+                                                            onClick={(e) => { e.stopPropagation(); updateServiceQuantity(service.id, 1); }}
+                                                            className="text-blue-600 hover:bg-blue-50 p-1 rounded transition"
+                                                        >
+                                                            <Plus size={14} />
+                                                        </button>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         )}
                         <p className="mt-4 text-xs text-gray-500 flex items-center gap-1">
@@ -261,8 +301,8 @@ export default function CheckoutPage() {
                                     <div className="pl-4 space-y-1">
                                         {selectedServices.map(s => (
                                             <div key={s.id} className="flex justify-between text-[11px] text-gray-400">
-                                                <span>• {s.name}</span>
-                                                <span>{formatCurrency(s.base_price)}</span>
+                                                <span>• {s.name} (x{s.quantity})</span>
+                                                <span>{formatCurrency(s.base_price * s.quantity)}</span>
                                             </div>
                                         ))}
                                     </div>

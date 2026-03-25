@@ -4,36 +4,17 @@ import { useGetBookingHistoryQuery } from '../services/booking';
 import { useCreatePayOSLinkMutation } from '../services/payment';
 import { toast } from 'react-toastify';
 import Header from '../components/layout/Header';
-
-// --- HELPER COMPONENTS ---
-
-// Component hiển thị Trạng thái (Badge)
-const StatusBadge = ({ status }) => {
-  const styles = {
-    COMPLETED: { bg: 'bg-green-100', text: 'text-green-700', label: 'Hoàn thành' },
-    CONFIRMED: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'Đã xác nhận' },
-    CANCELLED: { bg: 'bg-red-100', text: 'text-red-700', label: 'Đã hủy' },
-    EXPIRED: { bg: 'bg-red-100', text: 'text-red-700', label: 'Hết hạn' },
-    PENDING: { bg: 'bg-yellow-100', text: 'text-yellow-700', label: 'Chờ thanh toán' },
-  };
-
-  const style = styles[status] || styles.PENDING;
-
-  return (
-    <span className={`${style.bg} ${style.text} px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap`}>
-      {style.label}
-    </span>
-  );
-};
-
-// Component định dạng tiền tệ
-const formatCurrency = (amount) =>
-  new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
-
+import BookingDetailModal, { StatusBadge } from '../components/booking/BookingDetailModal';
 
 // --- 3. MAIN PAGE COMPONENT ---
+const formatCurrency = (amount) =>
+  new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount).replace('₫', 'đ');
+
 export default function BookingHistoryPage() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedBooking, setSelectedBooking] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  
   const { data: bookingsResponse, isLoading, error } = useGetBookingHistoryQuery();
   const [createPayOSLink, { isLoading: isPaymentLoading }] = useCreatePayOSLinkMutation();
 
@@ -51,6 +32,16 @@ export default function BookingHistoryPage() {
   };
 
   const bookings = bookingsResponse || [];
+
+  const openDetailModal = (booking) => {
+    setSelectedBooking(booking);
+    setIsModalOpen(true);
+  };
+
+  const closeDetailModal = () => {
+    setIsModalOpen(false);
+    setSelectedBooking(null);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans pb-10">
@@ -133,7 +124,12 @@ export default function BookingHistoryPage() {
                             </button>
                           ) : (
                             <>
-                              <button className="text-blue-600 font-bold hover:underline">Chi tiết</button>
+                              <button 
+                                onClick={() => openDetailModal(item)}
+                                className="text-blue-600 font-bold hover:underline"
+                              >
+                                Chi tiết
+                              </button>
                             </>
                           )}
                         </div>
@@ -146,7 +142,14 @@ export default function BookingHistoryPage() {
           )}
         </div>
 
-
+        {/* MODAL CHI TIẾT */}
+        {isModalOpen && selectedBooking && (
+          <BookingDetailModal 
+            booking={selectedBooking} 
+            onClose={closeDetailModal} 
+            formatCurrency={formatCurrency}
+          />
+        )}
       </div>
     </div>
   );
