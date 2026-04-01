@@ -3,35 +3,18 @@ import { Search, Filter, ChevronLeft, ChevronRight, Headphones, Bell, Loader2 } 
 import { useGetBookingHistoryQuery } from '../services/booking';
 import { useCreatePayOSLinkMutation } from '../services/payment';
 import { toast } from 'react-toastify';
-
-// --- HELPER COMPONENTS ---
-
-// Component hiển thị Trạng thái (Badge)
-const StatusBadge = ({ status }) => {
-  const styles = {
-    COMPLETED: { bg: 'bg-green-100', text: 'text-green-700', label: 'Hoàn thành' },
-    CONFIRMED: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'Đã xác nhận' },
-    CANCELLED: { bg: 'bg-red-100', text: 'text-red-700', label: 'Đã hủy' },
-    PENDING: { bg: 'bg-yellow-100', text: 'text-yellow-700', label: 'Chờ thanh toán' },
-  };
-
-  const style = styles[status] || styles.PENDING;
-
-  return (
-    <span className={`${style.bg} ${style.text} px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap`}>
-      {style.label}
-    </span>
-  );
-};
-
-// Component định dạng tiền tệ
-const formatCurrency = (amount) =>
-  new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
-
+import Header from '../components/layout/Header';
+import BookingDetailModal, { StatusBadge } from '../components/booking/BookingDetailModal';
 
 // --- 3. MAIN PAGE COMPONENT ---
+const formatCurrency = (amount) =>
+  new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount).replace('₫', 'đ');
+
 export default function BookingHistoryPage() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedBooking, setSelectedBooking] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  
   const { data: bookingsResponse, isLoading, error } = useGetBookingHistoryQuery();
   const [createPayOSLink, { isLoading: isPaymentLoading }] = useCreatePayOSLinkMutation();
 
@@ -48,30 +31,23 @@ export default function BookingHistoryPage() {
     }
   };
 
-  const bookings = bookingsResponse?.data || [];
+  const bookings = bookingsResponse || [];
+
+  const openDetailModal = (booking) => {
+    setSelectedBooking(booking);
+    setIsModalOpen(true);
+  };
+
+  const closeDetailModal = () => {
+    setIsModalOpen(false);
+    setSelectedBooking(null);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans pb-10">
 
       {/* HEADER */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-30 px-4 md:px-8 h-16 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="bg-blue-600 w-8 h-8 rounded flex items-center justify-center text-white font-bold">D</div>
-          <span className="text-xl font-bold text-gray-900">DORA HOTEL</span>
-        </div>
-        <nav className="hidden md:flex gap-6 text-sm font-medium text-gray-600">
-          <a href="/" className="hover:text-blue-600">Trang chủ</a>
-          <a href="/searchrooms" className="hover:text-blue-600">Phòng</a>
-          <a href="#" className="hover:text-blue-600">Dịch vụ</a>
-          <a href="/user/historybooking" className="text-blue-600 font-bold">Lịch sử</a>
-        </nav>
-        <div className="flex items-center gap-4">
-          <button className="p-2 bg-gray-100 rounded-full hover:bg-gray-200"><Bell size={18} /></button>
-          <div className="w-9 h-9 bg-yellow-200 rounded-full overflow-hidden border border-gray-300">
-            <img src="https://ui-avatars.com/api/?name=User&background=random" alt="User" />
-          </div>
-        </div>
-      </header>
+      <Header />
 
       {/* CONTENT CONTAINER */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10">
@@ -100,8 +76,9 @@ export default function BookingHistoryPage() {
                   <tr className="bg-gray-50 text-gray-500 text-xs uppercase font-bold tracking-wider border-b border-gray-100">
                     <th className="p-5">Phòng</th>
                     <th className="p-5">Mã đặt</th>
-                    <th className="p-5">Ngày nhận/trả</th>
+                    <th className="p-5">Ngày nhận - Ngày trả</th>
                     <th className="p-5">Tổng tiền</th>
+                    <th className="p-5">Tình trạng</th>
                     <th className="p-5">Trạng thái</th>
                     <th className="p-5 text-right">Hành động</th>
                   </tr>
@@ -112,12 +89,12 @@ export default function BookingHistoryPage() {
                       <td className="p-5">
                         <div className="flex items-center gap-4">
                           <img
-                            src={item.bookingRooms?.[0]?.roomType?.images?.[0] || 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?q=80&w=2070&auto=format&fit=crop'}
+                            src={item.bookingDetails?.[0]?.roomType?.images?.[0]?.url || 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?q=80&w=2070&auto=format&fit=crop'}
                             alt="Room"
                             className="w-16 h-12 rounded-lg object-cover shadow-sm"
                           />
                           <span className="font-bold text-gray-900 text-base">
-                            {item.bookingRooms?.[0]?.roomType?.name || 'Phòng nghỉ'}
+                            {item.bookingDetails?.[0]?.roomType?.name || 'Phòng nghỉ'}
                           </span>
                         </div>
                       </td>
@@ -129,7 +106,7 @@ export default function BookingHistoryPage() {
                       </td>
 
                       <td className="p-5 font-bold text-blue-600 text-base">{formatCurrency(item.total_price)}</td>
-
+                      <td className="p-5 text-gray-600">{(item.payment_status) == 'paid' ? <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap">Đã thanh toán</span> : <span className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap">Chưa thanh toán</span>}</td>
                       <td className="p-5">
                         <StatusBadge status={item.status} />
                       </td>
@@ -147,7 +124,12 @@ export default function BookingHistoryPage() {
                             </button>
                           ) : (
                             <>
-                              <button className="text-blue-600 font-bold hover:underline">Chi tiết</button>
+                              <button 
+                                onClick={() => openDetailModal(item)}
+                                className="text-blue-600 font-bold hover:underline"
+                              >
+                                Chi tiết
+                              </button>
                             </>
                           )}
                         </div>
@@ -160,22 +142,14 @@ export default function BookingHistoryPage() {
           )}
         </div>
 
-        {/* SUPPORT BANNER */}
-        <div className="mt-8 bg-blue-50 rounded-xl p-6 border border-blue-100 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="bg-white p-3 rounded-full text-blue-600 shadow-sm">
-              <Headphones size={24} />
-            </div>
-            <div>
-              <h4 className="font-bold text-gray-900 text-lg">Cần hỗ trợ về việc đặt phòng?</h4>
-              <p className="text-gray-600 text-sm">Đội ngũ CSKH của chúng tôi luôn sẵn sàng hỗ trợ bạn 24/7.</p>
-            </div>
-          </div>
-          <button className="bg-white border border-blue-200 text-blue-600 hover:bg-blue-600 hover:text-white transition-all font-bold px-6 py-3 rounded-lg shadow-sm w-full md:w-auto">
-            Liên hệ ngay
-          </button>
-        </div>
-
+        {/* MODAL CHI TIẾT */}
+        {isModalOpen && selectedBooking && (
+          <BookingDetailModal 
+            booking={selectedBooking} 
+            onClose={closeDetailModal} 
+            formatCurrency={formatCurrency}
+          />
+        )}
       </div>
     </div>
   );

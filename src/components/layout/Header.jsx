@@ -10,9 +10,15 @@ export default function Header() {
       <Container>
         <div className="flex h-16 items-center justify-between">
           {/* LOGO */}
-          <div className="flex items-center gap-2 font-bold text-blue-600">
-            <div className="h-8 w-8 rounded bg-blue-600" />
-            TravelBook
+          <div className="flex items-center gap-3">
+            <div className="bg-blue-600 p-2 rounded-lg shadow-lg">
+              {/* Icon mô phỏng logo Dora */}
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-white">
+                <path d="M3 3v18h18" />
+                <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3" />
+              </svg>
+            </div>
+            <span className="text-2xl font-bold tracking-tight">DORA HOTEL</span>
           </div>
 
           {/* MENU */}
@@ -20,7 +26,7 @@ export default function Header() {
             <a href="/" className="hover:text-blue-600">Trang chủ</a>
             <a href="#" className="hover:text-blue-600">Phòng</a>
             <a href="#" className="hover:text-blue-600">Tin tức</a>
-            <a href="#" className="hover:text-blue-600">Liên hệ</a>
+            <a href="/user/historybooking" className="hover:text-blue-600">Lịch sử</a>
           </nav>
 
           {/* RIGHT */}
