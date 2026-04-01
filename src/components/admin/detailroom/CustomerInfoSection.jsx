@@ -15,7 +15,7 @@ const DateInput = forwardRef(({ value, onClick, placeholder }, ref) => (
 ));
 
 export default function CustomerInfoSection({ room }) {
-
+  console.log('Received room prop in CustomerInfoSection:', room);
 
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
@@ -28,36 +28,29 @@ export default function CustomerInfoSection({ room }) {
   // Dữ liệu đã được làm phẳng (gộp tất cả lại thành 1 mảng để dễ filter)
   const [allBookings, setAllBookings] = useState([]);
 
- // State BookingModalDetail 
+  // State BookingModalDetail 
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Thêm state refreshKey để kích hoạt render lại khi Nhận/Trả phòng thành công
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const handleViewDetail = (bookingData) => {
     setSelectedBooking(bookingData);
     setIsModalOpen(true);
   };
 
-  // Hàm xử lý API Check-in
-  const handleCheckIn = async (bookingCode) => {
-    try {
-      // await api.post(`/bookings/${bookingCode}/check-in`);
-      setIsModalOpen(false);
-      // Gọi lại hàm fetch lại danh sách booking ở đây...
-    } catch (error) {
-      console.error(error);
-    }
+  // Hàm xử lý API Check-in (Nhận callback từ Modal)
+  const handleCheckIn = () => {
+    setIsModalOpen(false); // Đóng modal
+    setRefreshKey(prev => prev + 1); // Thay đổi key để useEffect gọi lại API fetch data mới
   };
 
-  // Hàm xử lý API Check-out
-  const handleCheckOut = async (bookingCode) => {
-    try {
-      // await api.post(`/bookings/${bookingCode}/check-out`);
-      setIsModalOpen(false);
-    } catch (error) {
-      console.error(error);
-    }
+  // Hàm xử lý API Check-out (Nhận callback từ Modal)
+  const handleCheckOut = () => {
+    setIsModalOpen(false); // Đóng modal
+    setRefreshKey(prev => prev + 1); // Thay đổi key để useEffect gọi lại API fetch data mới
   };
-
 
   // Hàm xử lý dữ liệu trả về từ API
   const processTimelineData = (data) => {
@@ -120,7 +113,7 @@ export default function CustomerInfoSection({ room }) {
     };
 
     fetchRoomsTimeline();
-  }, [room?.id]);
+  }, [room, refreshKey]); // Thêm refreshKey vào dependency để nó tự chạy lại
 
   // --- 1. LỌC DỮ LIỆU ---
   const filteredData = allBookings.filter(item => {
@@ -147,7 +140,7 @@ export default function CustomerInfoSection({ room }) {
   return (
     <div className="space-y-6">
 
-      {/* FILTER BOX (GIỮ NGUYÊN) */}
+      {/* FILTER BOX */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <h3 className="flex items-center gap-2 font-bold text-lg text-gray-900 mb-6">
           <Search size={20} className="text-blue-600" /> Tìm kiếm đặt phòng
@@ -167,7 +160,7 @@ export default function CustomerInfoSection({ room }) {
       {/* --- TABLE BOX --- */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200">
 
-        {/* HEADER CỦA BẢNG - UPDATE THEO YÊU CẦU */}
+        {/* HEADER CỦA BẢNG */}
         <div className="p-5 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <h3 className="flex items-center gap-2 font-bold text-lg text-gray-900">
@@ -178,7 +171,7 @@ export default function CustomerInfoSection({ room }) {
             </span>
           </div>
 
-          {/* --- CÁC NÚT LỌC STATUS (ĐÃ SỬA ID) --- */}
+          {/* --- CÁC NÚT LỌC STATUS --- */}
           <div className="flex bg-gray-100 p-1 rounded-lg self-start sm:self-auto">
             {[
               { id: 'ALL', label: 'Tất cả' },
@@ -233,15 +226,12 @@ export default function CustomerInfoSection({ room }) {
                   <td className="p-4 text-gray-600">
                     <div className="flex items-center gap-1.5">
                       <Calendar size={14} className="text-gray-400" />
-
                       <span className="font-medium">
                         {item.check_in
                           ? new Date(item.check_in).toLocaleDateString('vi-VN')
                           : 'N/A'}
                       </span>
-
                       <span className="text-gray-400">→</span>
-
                       <span className="font-medium">
                         {item.check_out
                           ? new Date(item.check_out).toLocaleDateString('vi-VN')
@@ -326,6 +316,7 @@ export default function CustomerInfoSection({ room }) {
           </div>
         )}
       </div>
+
       <BookingDetailModal 
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
