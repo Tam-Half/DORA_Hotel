@@ -11,7 +11,7 @@ import DashboardPage from "../pages/DashboardPage";
 import PaymentSuccessPage from "../pages/PaymentSuccessPage";
 import PaymentCancelPage from "../pages/PaymentCancelPage";
 import CheckoutPage from "../pages/CheckoutPage";
-
+import CheckoutPageAdmin from "../pages/CheckoutPageAdmin";
 
 
 export default function AppRoutes() {
@@ -33,6 +33,7 @@ export default function AppRoutes() {
                 <Route path="/checkout" element={<CheckoutPage />} />
                 {/* Có thể thêm route khác sau này */}
                 <Route path="/admin/dashboard" element={<DashboardPage />} />
+                <Route path="/admin/checkout/" element={<CheckoutPageAdmin />} />
 
             </Routes>
         </BrowserRouter>

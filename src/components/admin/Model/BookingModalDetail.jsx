@@ -1,46 +1,36 @@
 import React, { useState } from 'react';
-import bookingAPI from '../../../services/booking'; // Đảm bảo đường dẫn này trỏ đúng file API của bạn
+import { useNavigate } from 'react-router-dom'; // 1. Thêm import này
+import bookingAPI from '../../../services/booking';
 
 const BookingDetailModal = ({ isOpen, onClose, booking, onCheckIn, onCheckOut }) => {
-  // Thêm state loading để vô hiệu hóa nút trong lúc chờ API phản hồi
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate(); // 2. Khởi tạo navigate
 
   if (!isOpen || !booking) return null;
 
-  // Xử lý logic thời gian
   const today = new Date();
-  today.setHours(0, 0, 0, 0); // Đưa về đầu ngày để so sánh chính xác
+  today.setHours(0, 0, 0, 0);
 
   const checkInDate = new Date(booking.check_in_date || booking.check_in);
   checkInDate.setHours(0, 0, 0, 0);
 
-  // LOGIC ĐIỀU KIỆN:
-  // 1. Chưa đến ngày nhận phòng
   const isBeforeCheckInDate = today < checkInDate; 
-  
-  // 2. Điều kiện hiện nút Check-in (chỉ hiện nếu trạng thái chưa phải là CHECKED_IN, CANCELLED, EXPIRED)
   const canCheckIn = booking.status !== 'CHECKED_IN' && booking.status !== 'EXPIRED';
-
-  // 3. Điều kiện hiện nút Check-out (chỉ hiện nếu đang ở trạng thái CHECKED_IN)
   const canCheckOut = booking.status === 'CHECKED_IN';
 
-  // Hàm format ngày giờ hiển thị
   const formatDate = (dateString) => {
     if (!dateString) return 'Chưa có thông tin';
     return new Date(dateString).toLocaleDateString('vi-VN');
   };
 
-  // --- THÊM LOGIC GỌI API Ở ĐÂY ---
-
   const handleCheckInAction = async () => {
     try {
       setIsLoading(true);
-      // Gọi API với 3 tham số chuẩn: bookingId, status, allocationId
       await bookingAPI.updateRoomStatus(booking.booking_id, 'CHECKED_IN', booking.allocation_id);
       
       alert('Nhận phòng thành công!');
-      if (onCheckIn) onCheckIn(); // Gọi callback để Component cha refresh lại dữ liệu sơ đồ
-      onClose(); // Đóng modal
+      if (onCheckIn) onCheckIn();
+      onClose();
     } catch (error) {
       alert('Lỗi khi nhận phòng: ' + (error.message || 'Vui lòng thử lại'));
     } finally {
@@ -48,21 +38,11 @@ const BookingDetailModal = ({ isOpen, onClose, booking, onCheckIn, onCheckOut })
     }
   };
 
-  const handleCheckOutAction = async () => {
-    try {
-      
-      setIsLoading(true);
-      console.log('Gọi API updateRoomStatus với:', { bookingId: booking.booking_id, status: 'CHECKED_OUT', allocationId: booking.allocation_id });
-      await bookingAPI.updateRoomStatus(booking.booking_id, 'CHECKED_OUT', booking.allocation_id);
-      
-      alert('Trả phòng thành công!');
-      if (onCheckOut) onCheckOut(); // Gọi callback để Component cha refresh lại dữ liệu sơ đồ
-      onClose(); // Đóng modal
-    } catch (error) {
-      alert('Lỗi khi trả phòng: ' + (error.message || 'Vui lòng thử lại'));
-    } finally {
-      setIsLoading(false);
-    }
+  // 3. THAY ĐỔI HÀM NÀY: Chuyển sang trang checkout và truyền dữ liệu
+  const handleGoToCheckout = () => {
+    onClose(); // Đóng modal
+    // Chuyển hướng đến route /checkout và đính kèm dữ liệu booking vào state
+    navigate('/admin/checkout', { state: { bookingData: booking } });
   };
 
   return (
@@ -120,12 +100,13 @@ const BookingDetailModal = ({ isOpen, onClose, booking, onCheckIn, onCheckOut })
         <div style={styles.footer}>
           <button onClick={onClose} style={styles.btnDefault} disabled={isLoading}>Đóng</button>
           
+          {/* 4. Đổi onClick gọi handleGoToCheckout */}
           <button 
-            onClick={handleCheckOutAction}
+            onClick={handleGoToCheckout}
             disabled={!canCheckOut || isLoading}
             style={{...styles.btnAction, opacity: (!canCheckOut || isLoading) ? 0.5 : 1, backgroundColor: '#ef4444', color: '#fff'}}
           >
-            {isLoading ? 'Đang xử lý...' : 'Trả phòng'}
+            Làm thủ tục trả phòng
           </button>
 
           <button 
@@ -142,7 +123,7 @@ const BookingDetailModal = ({ isOpen, onClose, booking, onCheckIn, onCheckOut })
   );
 };
 
-// CSS Inline (Giữ nguyên của bạn)
+// CSS Inline (Giữ nguyên)
 const styles = {
   overlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 },
   modal: { backgroundColor: '#fff', borderRadius: '8px', width: '600px', maxWidth: '90%', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' },
