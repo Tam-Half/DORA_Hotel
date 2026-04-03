@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Search, Filter, ChevronLeft, ChevronRight, Headphones, Bell, Loader2 } from 'lucide-react';
-import { useGetBookingHistoryQuery } from '../services/booking';
+import { useGetBookingHistoryQuery, useCancelBookingMutation } from '../services/booking';
 import { useCreatePayOSLinkMutation } from '../services/payment';
 import { toast } from 'react-toastify';
 import Header from '../components/layout/Header';
+import { BookingStatus } from '../constants/Enums';
 import BookingDetailModal, { StatusBadge } from '../components/booking/BookingDetailModal';
 
 // --- 3. MAIN PAGE COMPONENT ---
@@ -14,9 +15,22 @@ export default function BookingHistoryPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
+
   const { data: bookingsResponse, isLoading, error } = useGetBookingHistoryQuery();
   const [createPayOSLink, { isLoading: isPaymentLoading }] = useCreatePayOSLinkMutation();
+  const [cancelBooking, { isLoading: isCancelLoading }] = useCancelBookingMutation();
+
+  const handleCancelBooking = async (bookingId) => {
+    if (window.confirm("Bạn có chắc chắn muốn hủy đơn đặt phòng này?")) {
+      try {
+        const result = await cancelBooking(bookingId).unwrap();
+        toast.success(result.message || "Hủy đơn đặt thành công");
+      } catch (err) {
+        console.error("Cancel error:", err);
+        toast.error(err.data?.message || "Không thể hủy đơn đặt. Vui lòng thử lại.");
+      }
+    }
+  };
 
   const handlePayNow = async (bookingId) => {
     try {
@@ -71,7 +85,7 @@ export default function BookingHistoryPage() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+              <table className="w-full text-left border-collapse min-w-[1500px]">
                 <thead>
                   <tr className="bg-gray-50 text-gray-500 text-xs uppercase font-bold tracking-wider border-b border-gray-100">
                     <th className="p-5">Phòng</th>
@@ -124,12 +138,21 @@ export default function BookingHistoryPage() {
                             </button>
                           ) : (
                             <>
-                              <button 
+                              <button
                                 onClick={() => openDetailModal(item)}
                                 className="text-blue-600 font-bold hover:underline"
                               >
                                 Chi tiết
                               </button>
+                              {[BookingStatus.PENDING, BookingStatus.CONFIRMED].includes(item.status) && (
+                                <button
+                                  disabled={isCancelLoading}
+                                  onClick={() => handleCancelBooking(item.id)}
+                                  className="text-red-500 font-bold hover:underline disabled:opacity-50"
+                                >
+                                  {isCancelLoading ? 'Đang hủy...' : 'Hủy đặt'}
+                                </button>
+                              )}
                             </>
                           )}
                         </div>
@@ -144,9 +167,9 @@ export default function BookingHistoryPage() {
 
         {/* MODAL CHI TIẾT */}
         {isModalOpen && selectedBooking && (
-          <BookingDetailModal 
-            booking={selectedBooking} 
-            onClose={closeDetailModal} 
+          <BookingDetailModal
+            booking={selectedBooking}
+            onClose={closeDetailModal}
             formatCurrency={formatCurrency}
           />
         )}
