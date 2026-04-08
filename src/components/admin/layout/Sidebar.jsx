@@ -5,7 +5,7 @@ import { NavLink } from 'react-router-dom'; // 1. Import NavLink
 // 2. Thêm đường dẫn (path) cho từng mục menu
 // Bạn nhớ bỏ thuộc tính 'active' cứng đi, NavLink sẽ tự xử lý
 const MENU_ITEMS = [
-  { icon: BedDouble, label: 'Sơ đồ phòng', path: '/admin' }, 
+  { icon: BedDouble, label: 'Sơ đồ phòng', path: '/admin' },
   { icon: BarChart3, label: 'Báo cáo', path: '/admin/dashboard' },
   { icon: Settings, label: 'Cài đặt', path: '/settings' },
 ];
@@ -28,11 +28,10 @@ export default function Sidebar() {
           <NavLink
             key={index}
             to={item.path}
-            className={({ isActive }) => 
-              `w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                isActive
-                  ? 'bg-blue-50 text-blue-600' // Style khi đang ở trang này
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' // Style khi bình thường
+            className={({ isActive }) =>
+              `w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${isActive
+                ? 'bg-blue-50 text-blue-600' // Style khi đang ở trang này
+                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' // Style khi bình thường
               }`
             }
           >

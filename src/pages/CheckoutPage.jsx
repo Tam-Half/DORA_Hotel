@@ -118,7 +118,9 @@ export default function CheckoutPage() {
     };
 
     const servicesTotal = selectedServices.reduce((sum, s) => sum + (Number(s.base_price) * s.quantity || 0), 0);
-    const grandTotal = (totalPrice || 0) + servicesTotal;
+    const subtotal = (totalPrice || 0) + servicesTotal;
+    const vat = subtotal * 0.08;
+    const grandTotal = subtotal + vat;
 
     const formatCurrency = (amount) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount).replace('₫', 'đ');
 
@@ -362,6 +364,14 @@ export default function CheckoutPage() {
                                     </div>
                                 </div>
                             )}
+                            <div className="flex justify-between items-center pt-4 border-t border-gray-100">
+                                <span className="text-gray-900 font-medium">Tạm tính</span>
+                                <span className="font-medium text-gray-900">{formatCurrency(subtotal)}</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                                <span className="text-gray-500">Thuế VAT (8%)</span>
+                                <span className="font-medium text-gray-900">{formatCurrency(vat)}</span>
+                            </div>
                             <div className="flex justify-between items-center pt-4 border-t border-gray-100">
                                 <span className="font-bold text-gray-900">Tổng cộng</span>
                                 <span className="text-xl font-extrabold text-rose-600">{formatCurrency(grandTotal)}</span>

@@ -28,4 +28,4 @@ export const ROOMS = [
   }
 ];
 
-export const NAV_LINKS = ['Trang chủ', 'Phòng nghỉ', 'Giới thiệu', 'Liên hệ'];
+export const NAV_LINKS = ['Trang chủ', 'Phòng', 'Giới thiệu'];

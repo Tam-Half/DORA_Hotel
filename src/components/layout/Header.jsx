@@ -1,42 +1,70 @@
-import Container from "./Container"
-import { useAuth } from "../../context/AuthContext"
-import { LogOut, User } from "lucide-react"
+import React, { useState } from 'react';
+import { Menu, X, User, LogOut } from 'lucide-react';
+import { NAV_LINKS } from '../../data/mockData';
+import { useAuth } from '../../context/AuthContext';
+import { useNavigate, useLocation } from 'react-router-dom';
+import logoIcon from '../../assets/icons/icon.png';
 
 export default function Header() {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, logout, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Highlight active link if needed, or just handle navigation
+  const handleNavClick = (path) => {
+    navigate(path);
+    setIsMobileMenuOpen(false);
+  };
 
   return (
-    <header className="border-b bg-white">
-      <Container>
-        <div className="flex h-16 items-center justify-between">
-          {/* LOGO */}
-          <div className="flex items-center gap-3">
-            <div className="bg-blue-600 p-2 rounded-lg shadow-lg">
-              {/* Icon mô phỏng logo Dora */}
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-white">
-                <path d="M3 3v18h18" />
-                <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3" />
-              </svg>
-            </div>
-            <span className="text-2xl font-bold tracking-tight">DORA HOTEL</span>
+    <header className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-md z-50 shadow-sm transition-all border-b border-gray-100">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-20">
+
+          {/* LEFT: LOGO */}
+          <div className="flex-shrink-0 flex items-center cursor-pointer group" onClick={() => navigate('/')}>
+            <img
+              src={logoIcon}
+              alt="Dora Hotel Logo"
+              className="h-25 w-25 object-contain transition-transform group-hover:scale-110"
+            />
+            {/* <span className="text-xl font-bold text-blue-600 tracking-tight font-poppins">DORA HOTEL</span> */}
           </div>
 
-          {/* MENU */}
-          <nav className="hidden md:flex items-center gap-6 text-sm text-gray-600">
-            <a href="/" className="hover:text-blue-600">Trang chủ</a>
-            <a href="#" className="hover:text-blue-600">Phòng</a>
-            <a href="#" className="hover:text-blue-600">Tin tức</a>
-            <a href="/user/historybooking" className="hover:text-blue-600">Lịch sử</a>
+          {/* CENTER: NAVIGATION */}
+          <nav className="hidden md:flex space-x-8 items-center justify-center flex-1">
+            {NAV_LINKS.map((item) => (
+              <button
+                key={item}
+                onClick={() => navigate('/')}
+                className="text-gray-600 hover:text-blue-600 font-medium text-sm transition-colors uppercase tracking-wide"
+              >
+                {item}
+              </button>
+            ))}
+            {/* Thêm link Lịch sử cho Dashboard */}
+            {isAuthenticated && (
+              <button
+                onClick={() => navigate('/user/historybooking')}
+                className={`font-medium text-sm transition-colors uppercase tracking-wide ${location.pathname === '/user/historybooking' ? 'text-blue-600 font-bold' : 'text-gray-600 hover:text-blue-600'}`}
+              >
+                Lịch sử
+              </button>
+            )}
           </nav>
 
-          {/* RIGHT */}
-          <div className="flex items-center gap-4">
+          {/* RIGHT: AUTH BUTTONS */}
+          <div className="hidden md:flex items-center gap-4 flex-shrink-0">
             {isAuthenticated ? (
               <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-full border">
+                <div
+                  onClick={() => navigate('/user/historybooking')}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-full border cursor-pointer hover:bg-gray-100 transition-colors"
+                >
                   <User size={16} className="text-gray-500" />
                   <span className="text-sm font-medium text-gray-700">
-                    Xin chào, {user?.name}
+                    {user?.name}
                   </span>
                 </div>
                 <button
@@ -48,21 +76,70 @@ export default function Header() {
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-3">
-                <a href="/login" className="text-sm font-semibold text-gray-700 hover:text-blue-600">
+              <>
+                <button
+                  onClick={() => navigate('/login')}
+                  className="text-gray-600 hover:text-blue-600 font-medium text-sm"
+                >
                   Đăng nhập
-                </a>
-                <a
-                  href="/register"
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-all"
+                </button>
+                <button
+                  onClick={() => navigate('/login')} // Update to /register if separate
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-full font-bold text-sm transition-transform hover:scale-105 shadow-lg shadow-blue-200"
                 >
                   Đăng ký
-                </a>
+                </button>
+              </>
+            )}
+          </div>
+
+          {/* MOBILE MENU BUTTON */}
+          <div className="md:hidden">
+            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="text-gray-600">
+              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* MOBILE MENU DROPDOWN */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden bg-white border-t border-gray-100 absolute w-full shadow-lg">
+          <div className="px-4 pt-2 pb-6 space-y-2">
+            {NAV_LINKS.map((item) => (
+              <button
+                key={item}
+                onClick={() => handleNavClick('/')}
+                className="block w-full text-left px-3 py-3 text-base font-medium text-gray-700 hover:bg-gray-50 rounded-md"
+              >
+                {item}
+              </button>
+            ))}
+            {isAuthenticated && (
+              <button
+                onClick={() => handleNavClick('/user/historybooking')}
+                className="block w-full text-left px-3 py-3 text-base font-medium text-gray-700 hover:bg-gray-50 rounded-md"
+              >
+                Lịch sử đặt phòng
+              </button>
+            )}
+            {!isAuthenticated && (
+              <div className="mt-4 flex flex-col gap-3">
+                <button onClick={() => handleNavClick('/login')} className="w-full text-center py-3 border border-gray-300 rounded-lg font-bold text-gray-700">Đăng nhập</button>
+                <button onClick={() => handleNavClick('/login')} className="w-full text-center py-3 bg-blue-600 text-white rounded-lg font-bold">Đăng ký</button>
               </div>
+            )}
+            {isAuthenticated && (
+              <button
+                onClick={logout}
+                className="w-full text-center py-3 mt-2 text-red-600 font-bold border border-red-100 rounded-lg"
+              >
+                Đăng xuất
+              </button>
             )}
           </div>
         </div>
-      </Container>
+      )}
     </header>
-  )
+  );
 }

@@ -3,13 +3,21 @@ import React, { useState, forwardRef, useEffect, useMemo } from 'react';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import { ro, vi } from 'date-fns/locale';
-import { Plus, RotateCcw, Calendar, ReceiptText } from 'lucide-react';
+import { Plus, RotateCcw, Calendar, ReceiptText, QrCode } from 'lucide-react';
 import RoomMapSidebar from '../components/admin/maproom/RoomMapSidebar';
 import RoomCard from '../components/admin/maproom/RoomCard';
 import roomAPI from '../services/room';
+import shiftAPI from '../services/shift'; // Added shiftAPI as it might be needed for shift info
+import bookingAPI from '../services/booking';
 import ShiftDetailModal from '../components/admin/Model/ShiftDetailModal';
+import QRScannerModal from '../components/admin/Model/QRScannerModal';
+import BookingDetailModal from '../components/booking/BookingDetailModal';
+import { toast } from 'react-toastify';
 
 import { useNavigate } from 'react-router-dom';
+
+const formatCurrency = (amount) =>
+  new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount).replace('₫', 'đ');
 
 // --- GIỮ NGUYÊN COMPONENT UI CỦA BẠN ---
 const CustomDateInput = forwardRef(({ value, onClick }, ref) => (
@@ -35,6 +43,36 @@ export default function RoomMapPage() {
 
 
   const [isShiftModalOpen, setIsShiftModalOpen] = useState(false);
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+
+  const handleScanSuccess = async (decodedText) => {
+    // Extract booking code from the scannable string (or use the whole text if it's just the code)
+    // The previous format was: Mã: BK-XXX
+    let bookingCode = decodedText;
+    if (decodedText.includes("Mã: ")) {
+      bookingCode = decodedText.split("Mã: ")[1].split("\n")[0].trim();
+    }
+
+    try {
+      setIsScannerOpen(false);
+      const loadingToast = toast.loading("Đang tìm kiếm thông tin đặt phòng...");
+      
+      const response = await bookingAPI.getAll({ booking_code: bookingCode });
+      toast.dismiss(loadingToast);
+
+      if (response && response.length > 0) {
+        setSelectedBooking(response[0]);
+        setIsDetailModalOpen(true);
+      } else {
+        toast.error("Không tìm thấy thông tin đặt phòng với mã này.");
+      }
+    } catch (err) {
+      console.error("Fetch booking error:", err);
+      toast.error("Có lỗi xảy ra khi lấy thông tin đặt phòng.");
+    }
+  };
 
   useEffect(() => {
     const fetchRooms = async () => {
@@ -160,6 +198,13 @@ export default function RoomMapPage() {
         </div>
         <div className="flex gap-3">
           <button
+            onClick={() => setIsScannerOpen(true)}
+            className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 flex items-center gap-2 shadow-sm shadow-indigo-200"
+          >
+            <QrCode size={18} />
+            Quét mã QR
+          </button>
+          <button
             onClick={() => setIsShiftModalOpen(true)}
             className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 flex items-center gap-2 text-gray-700"
           >
@@ -257,6 +302,20 @@ export default function RoomMapPage() {
         onClose={() => setIsShiftModalOpen(false)}
         shiftId={1} 
       />
+      
+      <QRScannerModal 
+        isOpen={isScannerOpen}
+        onClose={() => setIsScannerOpen(false)}
+        onScanSuccess={handleScanSuccess}
+      />
+
+      {isDetailModalOpen && selectedBooking && (
+        <BookingDetailModal 
+          booking={selectedBooking}
+          onClose={() => setIsDetailModalOpen(false)}
+          formatCurrency={formatCurrency}
+        />
+      )}
     </div>
   );
 }
