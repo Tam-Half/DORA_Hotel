@@ -7,7 +7,6 @@ import { Plus, RotateCcw, Calendar, ReceiptText, QrCode } from 'lucide-react';
 import RoomMapSidebar from '../components/admin/maproom/RoomMapSidebar';
 import RoomCard from '../components/admin/maproom/RoomCard';
 import roomAPI from '../services/room';
-import shiftAPI from '../services/shift'; // Added shiftAPI as it might be needed for shift info
 import bookingAPI from '../services/booking';
 import ShiftDetailModal from '../components/admin/Model/ShiftDetailModal';
 import EndShiftModal from '../components/admin/Model/EndShiftModal';
@@ -18,7 +17,6 @@ import QRScannerModal from '../components/admin/Model/QRScannerModal';
 import BookingDetailModal from '../components/booking/BookingDetailModal';
 import { toast } from 'react-toastify';
 
-import { useNavigate } from 'react-router-dom';
 
 const formatCurrency = (amount) =>
   new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount).replace('₫', 'đ');
