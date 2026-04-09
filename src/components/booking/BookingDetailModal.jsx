@@ -1,17 +1,19 @@
-import React from 'react';
-import { X, Calendar, User as UserIcon, Receipt, PlusCircle } from 'lucide-react';
+import { X, Calendar, User as UserIcon, Receipt, PlusCircle, QrCode } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
+import { BookingStatus, PaymentStatus } from '../../constants/Enums';
 
 // Component hiển thị Trạng thái (Badge)
 export const StatusBadge = ({ status }) => {
   const styles = {
-    COMPLETED: { bg: 'bg-green-100', text: 'text-green-700', label: 'Hoàn thành' },
-    CONFIRMED: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'Đã xác nhận' },
-    CANCELLED: { bg: 'bg-red-100', text: 'text-red-700', label: 'Đã hủy' },
-    EXPIRED: { bg: 'bg-red-100', text: 'text-red-700', label: 'Hết hạn' },
-    PENDING: { bg: 'bg-yellow-100', text: 'text-yellow-700', label: 'Chờ thanh toán' },
+    [BookingStatus.COMPLETED]: { bg: 'bg-green-100', text: 'text-green-700', label: 'Hoàn thành' },
+    [BookingStatus.CONFIRMED]: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'Đã xác nhận' },
+    [BookingStatus.CANCELLED]: { bg: 'bg-red-100', text: 'text-red-700', label: 'Đã hủy' },
+    [BookingStatus.EXPIRED]: { bg: 'bg-red-100', text: 'text-red-700', label: 'Hết hạn' },
+    [BookingStatus.PENDING]: { bg: 'bg-yellow-100', text: 'text-yellow-700', label: 'Chờ thanh toán' },
+    [BookingStatus.CHECKED_IN]: { bg: 'bg-indigo-100', text: 'text-indigo-700', label: 'Đã nhận phòng' },
   };
 
-  const style = styles[status] || styles.PENDING;
+  const style = styles[status] || styles[BookingStatus.PENDING];
 
   return (
     <span className={`${style.bg} ${style.text} px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap`}>
@@ -23,14 +25,42 @@ export const StatusBadge = ({ status }) => {
 const BookingDetailModal = ({ booking, onClose, formatCurrency }) => {
   if (!booking) return null;
 
+  // Helper to generate text for QR code
+  const generateBookingQRString = () => {
+    const roomName = booking.bookingDetails?.[0]?.roomType?.name || 'Phòng nghỉ';
+    const checkIn = new Date(booking.check_in_date).toLocaleDateString('vi-VN');
+    const checkOut = new Date(booking.check_out_date).toLocaleDateString('vi-VN');
+
+    let servicesText = "";
+    if (booking.serviceOrders && booking.serviceOrders.length > 0) {
+      servicesText = "\nDịch vụ: " + booking.serviceOrders.map(s => `${s.service_name_snapshot} (x${s.quantity})`).join(", ");
+    }
+
+    return `DORA HOTEL - BOOKING TICKET
+---------------------------
+Mã: ${booking.booking_code}
+Khách: ${booking.guest_name}
+Phòng: ${roomName}
+Thời gian: ${checkIn} -> ${checkOut}${servicesText}
+Tổng tiền: ${formatCurrency(booking.total_price)}
+---------------------------
+Cảm ơn quý khách!`;
+  };
+
+  const qrString = generateBookingQRString();
+
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
       <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col">
         {/* Modal Header */}
         <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-white sticky top-0 z-10">
-          <div>
-            <h2 className="text-xl font-bold text-gray-900">Chi tiết đặt phòng</h2>
-            <p className="text-xs text-gray-500 mt-1">Mã đặt: <span className="font-mono font-bold text-blue-600">{booking.booking_code}</span></p>
+          <div className="flex items-center gap-6">
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">Chi tiết đặt phòng</h2>
+              <p className="text-xs text-gray-500 mt-1">Mã đặt: <span className="font-mono font-bold text-blue-600">{booking.booking_code}</span></p>
+            </div>
+
+
           </div>
           <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-400 hover:text-gray-600">
             <X size={20} />
@@ -54,8 +84,8 @@ const BookingDetailModal = ({ booking, onClose, formatCurrency }) => {
                   <h3 className="text-lg font-bold text-gray-900">{booking.bookingDetails?.[0]?.roomType?.name || 'Phòng nghỉ'}</h3>
                   <div className="flex items-center gap-2 mt-1">
                     <StatusBadge status={booking.status} />
-                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${booking.payment_status === 'paid' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
-                      {booking.payment_status === 'paid' ? 'Đã thanh toán' : 'Chưa thanh toán'}
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${booking.payment_status === PaymentStatus.PAID ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
+                      {booking.payment_status === PaymentStatus.PAID ? 'Đã thanh toán' : 'Chưa thanh toán'}
                     </span>
                   </div>
                 </div>
@@ -138,6 +168,15 @@ const BookingDetailModal = ({ booking, onClose, formatCurrency }) => {
                 <p className="text-sm text-gray-400">Không có dịch vụ bổ sung nào.</p>
               </div>
             )}
+          </div>
+
+          <div className="w-full flex justify-center">
+            <QRCodeSVG
+              value={qrString}
+              size={200}
+              level="M"
+              includeMargin={false}
+            />
           </div>
         </div>
 

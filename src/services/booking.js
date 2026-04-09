@@ -36,6 +36,13 @@ export const bookingApi = createApi({
             }),
             invalidatesTags: ['Booking'],
         }),
+        cancelBooking: builder.mutation({
+            query: (id) => ({
+                url: `/bookings/${id}/cancel`,
+                method: 'POST',
+            }),
+            invalidatesTags: ['Booking'],
+        }),
     }),
 });
 
@@ -44,12 +51,13 @@ export const {
     useGetBookingByIdQuery,
     useCreateBookingMutation,
     useDeleteBookingMutation,
+    useCancelBookingMutation,
 } = bookingApi;
 import api from "./api";
 const bookingAPI = {
     getAll: async (params) => {
         try {
-            const response = await api.get('/booking/', { params });
+            const response = await api.get('/bookings/', { params });
             return response.data;
         } catch (error) {
             throw error.response?.data || error.message;
