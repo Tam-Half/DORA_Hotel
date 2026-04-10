@@ -11,6 +11,7 @@ import shiftAPI from '../services/shift'; // Added shiftAPI as it might be neede
 import bookingAPI from '../services/booking';
 import ShiftDetailModal from '../components/admin/Model/ShiftDetailModal';
 import QRScannerModal from '../components/admin/Model/QRScannerModal';
+import QRScanResultModal from '../components/admin/Model/QRScanResultModal';
 import BookingDetailModal from '../components/booking/BookingDetailModal';
 import { toast } from 'react-toastify';
 
@@ -310,10 +311,10 @@ export default function RoomMapPage() {
       />
 
       {isDetailModalOpen && selectedBooking && (
-        <BookingDetailModal 
+        <QRScanResultModal 
+          isOpen={isDetailModalOpen}
           booking={selectedBooking}
           onClose={() => setIsDetailModalOpen(false)}
-          formatCurrency={formatCurrency}
         />
       )}
     </div>
