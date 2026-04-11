@@ -6,6 +6,7 @@ import { toast } from 'react-toastify';
 import Header from '../components/layout/Header';
 import { BookingStatus } from '../constants/Enums';
 import BookingDetailModal, { StatusBadge } from '../components/booking/BookingDetailModal';
+import ReviewModal from '../components/room/ReviewModal';
 
 // --- 3. MAIN PAGE COMPONENT ---
 const formatCurrency = (amount) =>
@@ -15,6 +16,8 @@ export default function BookingHistoryPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [reviewBooking, setReviewBooking] = useState(null);
 
   const { data: bookingsResponse, isLoading, error } = useGetBookingHistoryQuery();
   const [createPayOSLink, { isLoading: isPaymentLoading }] = useCreatePayOSLinkMutation();
@@ -55,6 +58,16 @@ export default function BookingHistoryPage() {
   const closeDetailModal = () => {
     setIsModalOpen(false);
     setSelectedBooking(null);
+  };
+
+  const openReviewModal = (booking) => {
+    setReviewBooking(booking);
+    setIsReviewModalOpen(true);
+  };
+
+  const closeReviewModal = () => {
+    setIsReviewModalOpen(false);
+    setReviewBooking(null);
   };
 
   return (
@@ -138,6 +151,14 @@ export default function BookingHistoryPage() {
                             </button>
                           ) : (
                             <>
+                              {(item.status === 'COMPLETED' || item.status === 'CHECKED_IN') && (
+                                <button
+                                  onClick={() => openReviewModal(item)}
+                                  className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-bold text-xs transition shadow-sm flex items-center gap-2"
+                                >
+                                  Viết đánh giá
+                                </button>
+                              )}
                               <button
                                 onClick={() => openDetailModal(item)}
                                 className="text-blue-600 font-bold hover:underline"
@@ -165,12 +186,21 @@ export default function BookingHistoryPage() {
           )}
         </div>
 
-        {/* MODAL CHI TIẾT */}
         {isModalOpen && selectedBooking && (
           <BookingDetailModal
             booking={selectedBooking}
             onClose={closeDetailModal}
             formatCurrency={formatCurrency}
+          />
+        )}
+
+        {isReviewModalOpen && reviewBooking && (
+          <ReviewModal
+            isOpen={isReviewModalOpen}
+            onClose={closeReviewModal}
+            bookingId={reviewBooking.id}
+            roomType={reviewBooking.bookingDetails?.[0]?.roomType}
+            roomTypeId={reviewBooking.bookingDetails?.[0]?.roomType?.id}
           />
         )}
       </div>
