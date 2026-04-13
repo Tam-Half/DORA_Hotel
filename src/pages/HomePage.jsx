@@ -3,7 +3,7 @@ import Header from '../components/layout/Header';
 import HeroSection from '../components/homepage/HeroSection';
 import FeaturedRooms from '../components/homepage/FeaturedRooms';
 import PromoSection from '../components/homepage/PromoSection';
-import HomeFooter from '../components/homepage/HomeFooter';
+import Footer from '../components/layout/Footer';
 
 export default function HomePage() {
   return (
@@ -12,7 +12,7 @@ export default function HomePage() {
       <HeroSection />
       <FeaturedRooms />
       <PromoSection />
-      <HomeFooter />
+      <Footer />
     </div>
   );
 }

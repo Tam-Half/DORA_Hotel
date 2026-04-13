@@ -9,7 +9,7 @@ export default function Review({ user, rating, comment, created_at }) {
     });
   };
 
-  const username = user?.username || "Khách hàng";
+  const username = user?.name || "Khách hàng";
   const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=random`;
 
   return (
@@ -27,7 +27,7 @@ export default function Review({ user, rating, comment, created_at }) {
             </span>
           </div>
         </div>
-        
+
         <div className="flex items-center gap-1.5 bg-yellow-50 px-2.5 py-1 rounded-lg border border-yellow-100">
           <span className="text-sm font-bold text-yellow-700">{Number(rating).toFixed(1)}</span>
           <img src={StarIcon} alt="rating" className="w-4 h-4" />
@@ -36,7 +36,7 @@ export default function Review({ user, rating, comment, created_at }) {
 
       {/* Comment Body */}
       <div className="text-sm text-gray-600 leading-relaxed italic">
-        "{comment}"
+        {comment}
       </div>
     </div>
   );

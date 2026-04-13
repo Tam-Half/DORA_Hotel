@@ -7,6 +7,7 @@ import { useCreatePayOSLinkMutation } from '../services/payment';
 import { useGetRoomTypeByIdQuery } from '../services/roomType';
 import { toast } from 'react-toastify';
 import { ChevronLeft, CreditCard, User, ShieldCheck, Plus, Minus, Info, Loader2 } from 'lucide-react';
+import Footer from '../components/layout/Footer';
 
 export default function CheckoutPage() {
     const location = useLocation();
@@ -399,6 +400,7 @@ export default function CheckoutPage() {
                     </div>
                 </div>
             </div>
+            <Footer />
         </div>
     );
 }

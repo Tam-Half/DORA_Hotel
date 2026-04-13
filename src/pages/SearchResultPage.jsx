@@ -46,6 +46,14 @@ export default function SearchResultPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // --- FILTER STATE ---
+  const [filters, setFilters] = useState({
+    price: 3000000, // Default max price
+    roomClasses: [], // Selected room class names
+    amenities: [],
+    rating: 0
+  });
+
   const [searchAvailability, { isLoading: searchLoading }] = useSearchAvailabilityMutation();
 
   // RTK Query for all rooms (if no initial results)
@@ -96,6 +104,37 @@ export default function SearchResultPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // --- FILTERING LOGIC ---
+  const filteredRooms = rooms.filter(room => {
+    const price = room.basePrice || room.base_price || 0;
+    const matchesPrice = price <= filters.price;
+    const matchesClass = filters.roomClasses.length === 0 || 
+                         (room.roomClass && filters.roomClasses.includes(room.roomClass.name));
+    const matchesRating = (room.average_rating || 0) >= filters.rating;
+    
+    // For amenities, assuming room.amenities is an array of strings or objects
+    const roomAmenities = room.amenities || [];
+    const matchesAmenities = filters.amenities.length === 0 || 
+                             filters.amenities.every(a => 
+                                roomAmenities.some(ra => (typeof ra === 'string' ? ra : ra.name) === a)
+                             );
+
+    return matchesPrice && matchesClass && matchesRating && matchesAmenities;
+  });
+
+  const handleFilterChange = (newFilters) => {
+    setFilters(prev => ({ ...prev, ...newFilters }));
+  };
+
+  const handleResetFilters = () => {
+    setFilters({
+      price: 5000000,
+      roomClasses: [],
+      amenities: [],
+      rating: 0
+    });
   };
 
   return (
@@ -176,7 +215,7 @@ export default function SearchResultPage() {
 
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end mt-2 gap-4">
             <p className="text-gray-600">
-              Tìm thấy <strong className="text-gray-900">{rooms.length}</strong> phòng phù hợp
+              Tìm thấy <strong className="text-gray-900">{filteredRooms.length}</strong> phòng phù hợp
               {startDate && endDate && (
                 <span> từ <strong>{startDate.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' })}</strong> đến <strong>{endDate.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' })}</strong></span>
               )}
@@ -194,7 +233,12 @@ export default function SearchResultPage() {
         {/* --- GRID LAYOUT --- */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
           <div className="hidden lg:block lg:col-span-1">
-            <FilterSidebar />
+            <FilterSidebar 
+              filters={filters} 
+              onFilterChange={handleFilterChange}
+              onReset={handleResetFilters}
+              availableRoomClasses={[...new Set(rooms.map(r => r.roomClass?.name).filter(Boolean))]}
+            />
           </div>
           <div className="lg:col-span-3">
             {loading ? (
@@ -212,13 +256,14 @@ export default function SearchResultPage() {
                   Thử lại
                 </button>
               </div>
-            ) : rooms.length === 0 ? (
+            ) : filteredRooms.length === 0 ? (
               <div className="p-12 text-center bg-white rounded-xl shadow-sm border border-gray-100">
-                <p className="text-gray-500 text-lg">Không tìm thấy phòng nào phù hợp với yêu cầu của bạn.</p>
+                <p className="text-gray-500 text-lg">Không tìm thấy phòng nào phù hợp với bộ lọc của bạn.</p>
+                <button onClick={handleResetFilters} className="text-blue-600 font-medium hover:underline mt-2">Xóa tất cả bộ lọc</button>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {rooms.map((room) => (
+                {filteredRooms.map((room) => (
                   <RoomCard
                     key={room.roomTypeId || room.id}
                     room={room}

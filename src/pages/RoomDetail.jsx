@@ -84,7 +84,11 @@ export default function RoomDetail() {
           <div className="lg:col-span-2 space-y-8">
             <RoomInfo description={room.description} />
             <RoomAmenities amenities={room.amenities} />
-            <RoomReviews reviews={room.reviews} averageRating={room.averageRating} totalReviews={room.totalReviews} />
+            <RoomReviews
+              reviews={room.reviews}
+              averageRating={room.average_rating}
+              totalReviews={room.review_count}
+            />
           </div>
 
           {/* RIGHT */}

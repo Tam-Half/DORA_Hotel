@@ -90,7 +90,7 @@ export default function BookingCard({ room, initialCheckIn, initialCheckOut }) {
       <div className=" rounded-xl mb-4 relative bg-white z-10">
 
         {/* DATE PICKER */}
-        <div className="flex border border-gray-200 rounded-t-xl overflow-hidden">
+        <div className="flex border border-gray-200 rounded-t-xl">
           <div className="w-1/2 p-3 hover:bg-gray-50 cursor-pointer relative border-r border-gray-200">
             <label className="block text-[10px] font-bold text-gray-700 uppercase mb-1">Nhận phòng</label>
             <DatePicker

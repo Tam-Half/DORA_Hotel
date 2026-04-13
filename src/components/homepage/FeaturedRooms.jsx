@@ -59,7 +59,7 @@ export default function FeaturedRooms() {
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                   />
                   <div className="absolute top-4 right-4 bg-white/90 backdrop-blur text-gray-900 px-2 py-1 rounded-lg text-sm font-bold flex items-center gap-1">
-                    <Star size={14} className="text-yellow-500 fill-yellow-500" /> 4.9
+                    <Star size={14} className="text-yellow-500 fill-yellow-500" /> {Number(room.average_rating).toFixed(1)}
                   </div>
                 </div>
 
