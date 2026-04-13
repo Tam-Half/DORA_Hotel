@@ -1,19 +1,60 @@
-import Container from "./Container"
+import React from 'react';
+import { Facebook, Instagram, Twitter } from 'lucide-react';
+import Logo from "../../assets/icons/icon.png";
 
 export default function Footer() {
   return (
-    <footer className="mt-20 border-t bg-gray-50">
-      <Container>
-        <div className="flex flex-col gap-4 py-6 text-sm text-gray-500 md:flex-row md:items-center md:justify-between">
-          <p>© 2024 TravelBook Inc. All rights reserved.</p>
+    <footer className="bg-white border-t border-gray-100 pt-16 pb-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
+          {/* Brand */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              {/* <img src={Logo} alt="Dora Hotel" className="h-8" /> */}
+              <span className="text-xl font-bold text-gray-900">DORA HOTEL</span>
+            </div>
+            <p className="text-gray-500 text-sm leading-relaxed">
+              Trải nghiệm nghỉ dưỡng tuyệt vời nhất ngay tại trung tâm thành phố với dịch vụ 5 sao.
+            </p>
+            <div className="flex gap-4 pt-2">
+              {[Facebook, Instagram, Twitter].map((Icon, i) => (
+                <a key={i} href="#" className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                  <Icon size={18} />
+                </a>
+              ))}
+            </div>
+          </div>
 
-          <div className="flex gap-6">
-            <a href="#" className="hover:text-blue-600">Quyền riêng tư</a>
-            <a href="#" className="hover:text-blue-600">Điều khoản</a>
-            <a href="#" className="hover:text-blue-600">Sơ đồ trang</a>
+          {/* Links 1 */}
+          <div>
+            <h4 className="font-bold text-gray-900 mb-6">Về Dora Hotel</h4>
+            <ul className="space-y-4 text-sm text-gray-500">
+              <li><a href="#" className="hover:text-blue-600">Về chúng tôi</a></li>
+              <li><a href="#" className="hover:text-blue-600">Cơ hội nghề nghiệp</a></li>
+              <li><a href="#" className="hover:text-blue-600">Blog du lịch</a></li>
+            </ul>
+          </div>
+
+          {/* Links 2 */}
+          <div>
+            <h4 className="font-bold text-gray-900 mb-6">Hỗ Trợ</h4>
+            <ul className="space-y-4 text-sm text-gray-500">
+              <li><a href="#" className="hover:text-blue-600">Trung tâm trợ giúp</a></li>
+              <li><a href="#" className="hover:text-blue-600">Chính sách bảo mật</a></li>
+              <li><a href="#" className="hover:text-blue-600">Liên hệ</a></li>
+            </ul>
           </div>
         </div>
-      </Container>
+
+        <div className="border-t border-gray-100 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-400">
+          <p>&copy; 2026 Dora Hotel. All rights reserved.</p>
+          <div className="flex gap-6">
+            <a href="#">Điều khoản</a>
+            <a href="#">Bảo mật</a>
+            <a href="#">Sitemap</a>
+          </div>
+        </div>
+      </div>
     </footer>
-  )
+  );
 }

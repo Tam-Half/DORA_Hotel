@@ -7,6 +7,7 @@ import Header from '../components/layout/Header';
 import { BookingStatus } from '../constants/Enums';
 import BookingDetailModal, { StatusBadge } from '../components/booking/BookingDetailModal';
 import ReviewModal from '../components/room/ReviewModal';
+import Footer from '../components/layout/Footer';
 
 // --- 3. MAIN PAGE COMPONENT ---
 const formatCurrency = (amount) =>
@@ -204,6 +205,7 @@ export default function BookingHistoryPage() {
           />
         )}
       </div>
+      <Footer />
     </div>
   );
 }

@@ -5,12 +5,12 @@ import { useGetReviewsByRoomTypeQuery } from "../../services/review";
 import { useParams } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 
-export default function RoomReviews({ averageRating = 0, totalReviews = 0 }) {
+export default function RoomReviews({ averageRating, totalReviews }) {
   const { id } = useParams();
   const { data: reviewsData, isLoading } = useGetReviewsByRoomTypeQuery(id);
   const reviews = reviewsData?.data || [];
 
-  const MAX = 4;
+  const MAX = 8;
   const [showAll, setShowAll] = useState(false);
 
   const visibleReviews = showAll ? reviews : reviews.slice(0, MAX);
