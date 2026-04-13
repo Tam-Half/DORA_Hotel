@@ -1,6 +1,18 @@
 import api from './api';
 
 const shiftAPI = {
+    // [THÊM MỚI] Hàm mở ca làm việc
+    startShift: async (payload) => {
+        try {
+            // payload sẽ chứa { staffId, initialCash }
+            const response = await api.post(`/shifts/start`, payload);
+            return response.data;
+        } catch (error) {
+            throw error.response?.data || error.message;
+        }
+    },
+
+    // --- CÁC HÀM CŨ GIỮ NGUYÊN ---
     getShiftByID: async (shiftId) => {
         try {
             const response = await api.get(`/shifts/${shiftId}`);
@@ -9,6 +21,7 @@ const shiftAPI = {
             throw error.response?.data || error.message;
         }
     },
+
     endShift: async (shiftId, actualCash, note) => {
         try {
             const payload = {
@@ -21,6 +34,7 @@ const shiftAPI = {
             throw error.response?.data || error.message;
         }
     },
+
     getCurrentShift: async (staffId) => {
         try {
             const response = await api.get(`/shifts/current?staffId=${staffId}`);
@@ -30,7 +44,6 @@ const shiftAPI = {
             throw error.response?.data || error.message;
         }
     }
-
 };
 
 export default shiftAPI;

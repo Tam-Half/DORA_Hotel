@@ -60,7 +60,8 @@ export default function EndShiftModal({ isOpen, onClose, shiftId }) {
       };
 
       const res = await shiftAPI.endShift(shiftId, payload.actualCash, payload.note);
-      if (res.ok) {
+      console.log("Kết quả API chốt ca:", res);
+      if (res.message === "Chốt ca thành công") {
         alert("Chốt ca thành công!");
         onClose();
         logout();
