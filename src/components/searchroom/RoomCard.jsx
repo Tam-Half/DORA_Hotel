@@ -42,10 +42,6 @@ export default function RoomCard({ room, startDate, endDate }) {
             {room.tag}
           </span>
         )}
-        {/* Nút Yêu thích */}
-        <button className="absolute top-3 right-3 p-1.5 bg-black/20 rounded-full text-white hover:bg-black/40 transition">
-          <Heart size={18} />
-        </button>
       </div>
 
       {/* --- CONTENT SECTION --- */}
@@ -57,8 +53,8 @@ export default function RoomCard({ room, startDate, endDate }) {
           </span>
           <div className="flex items-center gap-1 text-orange-500 text-sm font-bold">
             <Star size={14} fill="currentColor" />
-            <span>4.8</span>
-            <span className="text-gray-400 font-normal">(124)</span>
+            <span>{Number(room.average_rating).toFixed(1)}</span>
+            <span className="text-gray-400 font-normal">({room.review_count})</span>
           </div>
         </div>
 
