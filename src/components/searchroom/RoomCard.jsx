@@ -76,9 +76,6 @@ export default function RoomCard({ room, startDate, endDate }) {
             <Ruler size={14} /> {room.size_m2}m²
           </div>
           <div className="flex items-center gap-1">
-            <BedDouble size={14} /> {room.capacity_people > 1 ? '2 Giường' : '1 Giường'}
-          </div>
-          <div className="flex items-center gap-1">
             <User size={14} /> {room.capacity_people} Người
           </div>
         </div>

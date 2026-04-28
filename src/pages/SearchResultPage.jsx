@@ -110,16 +110,16 @@ export default function SearchResultPage() {
   const filteredRooms = rooms.filter(room => {
     const price = room.basePrice || room.base_price || 0;
     const matchesPrice = price <= filters.price;
-    const matchesClass = filters.roomClasses.length === 0 || 
-                         (room.roomClass && filters.roomClasses.includes(room.roomClass.name));
+    const matchesClass = filters.roomClasses.length === 0 ||
+      (room.roomClass && filters.roomClasses.includes(room.roomClass.name));
     const matchesRating = (room.average_rating || 0) >= filters.rating;
-    
+
     // For amenities, assuming room.amenities is an array of strings or objects
     const roomAmenities = room.amenities || [];
-    const matchesAmenities = filters.amenities.length === 0 || 
-                             filters.amenities.every(a => 
-                                roomAmenities.some(ra => (typeof ra === 'string' ? ra : ra.name) === a)
-                             );
+    const matchesAmenities = filters.amenities.length === 0 ||
+      filters.amenities.every(a =>
+        roomAmenities.some(ra => (typeof ra === 'string' ? ra : ra.name) === a)
+      );
 
     return matchesPrice && matchesClass && matchesRating && matchesAmenities;
   });
@@ -141,7 +141,7 @@ export default function SearchResultPage() {
     <div className="bg-gray-50 min-h-screen pb-20">
       <Header />
       {/* --- HEADER TÌM KIẾM --- */}
-      <div className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-30">
+      <div className="bg-white sticky top-0 z-30">
         <Container>
           <div className="py-4">
             {/* SEARCH BAR CONTAINER */}
@@ -233,8 +233,8 @@ export default function SearchResultPage() {
         {/* --- GRID LAYOUT --- */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
           <div className="hidden lg:block lg:col-span-1">
-            <FilterSidebar 
-              filters={filters} 
+            <FilterSidebar
+              filters={filters}
               onFilterChange={handleFilterChange}
               onReset={handleResetFilters}
               availableRoomClasses={[...new Set(rooms.map(r => r.roomClass?.name).filter(Boolean))]}
