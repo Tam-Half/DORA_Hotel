@@ -1,0 +1,44 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bookinghotel-be-deployment
+  labels:
+    app: bookinghotelbe
+  namespace: bookinghotel
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bookinghotelbe
+  template:
+    metadata:
+      labels:
+        app: bookinghotelbe
+    spec:
+      containers:
+        - name: bookinghotelbe-container
+          image: tamtran0210/bookinghotel_be:01
+          ports:
+            - containerPort: 120
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bookinghotel-be-service
+  namespace: bookinghotel
+spec:
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+    - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+    - name: tcp
+      port: 80
+      protocol: TCP
+      targetPort: 3000
+  selector:
+    app: bookinghotelfe
+  sessionAffinity: None
+  type: ClusterIP
+  
