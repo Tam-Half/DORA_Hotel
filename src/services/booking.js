@@ -36,10 +36,26 @@ export const bookingApi = createApi({
             }),
             invalidatesTags: ['Booking'],
         }),
+        updateBooking: builder.mutation({
+            query: ({ id, ...data }) => ({
+                url: `/bookings/${id}`,
+                method: 'PUT',
+                data,
+            }),
+            invalidatesTags: (result, error, { id }) => [{ type: 'Booking', id }, 'Booking'],
+        }),
         cancelBooking: builder.mutation({
             query: (id) => ({
                 url: `/bookings/${id}/cancel`,
                 method: 'POST',
+            }),
+            invalidatesTags: ['Booking'],
+        }),
+        checkout: builder.mutation({
+            query: ({ id, ...data }) => ({
+                url: `/bookings/${id}/checkout`,
+                method: 'POST',
+                data,
             }),
             invalidatesTags: ['Booking'],
         }),
@@ -51,7 +67,9 @@ export const {
     useGetBookingByIdQuery,
     useCreateBookingMutation,
     useDeleteBookingMutation,
+    useUpdateBookingMutation,
     useCancelBookingMutation,
+    useCheckoutMutation,
 } = bookingApi;
 import api from "./api";
 const bookingAPI = {
