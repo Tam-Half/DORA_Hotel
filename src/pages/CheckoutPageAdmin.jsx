@@ -1,105 +1,308 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useGetAllExtraServicesQuery } from '../services/extraService';
+import { useGetBookingByIdQuery, useUpdateBookingMutation, useCheckoutMutation } from '../services/booking';
+import { useCreatePayOSLinkMutation, useVerifyPayOSStatusMutation } from '../services/payment';
+import { QRCodeCanvas } from 'qrcode.react';
+import { toast } from 'react-toastify';
+
+const SkeletonItem = () => (
+  <div className="flex justify-between items-center p-4 border border-gray-100 rounded-lg bg-gray-50/50 animate-pulse">
+    <div className="flex items-center gap-3">
+      <div className="w-5 h-5 bg-gray-200 rounded"></div>
+      <div>
+        <div className="h-4 w-32 bg-gray-200 rounded mb-2"></div>
+        <div className="h-3 w-20 bg-gray-200 rounded"></div>
+      </div>
+    </div>
+    <div className="flex items-center gap-8">
+      <div className="h-8 w-24 bg-gray-200 rounded-full"></div>
+      <div className="h-4 w-16 bg-gray-200 rounded"></div>
+    </div>
+  </div>
+);
+
+const CashPaymentModal = ({ isOpen, onClose, total, onConfirm, isProcessing }) => {
+  const [paid, setPaid] = useState(total);
+  const change = paid - total;
+
+  useEffect(() => {
+    if (isOpen) setPaid(total);
+  }, [isOpen, total]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+        <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+          <h3 className="text-xl font-bold text-gray-800">Thanh toán tiền mặt</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="p-8 space-y-6">
+          <div className="flex justify-between items-center text-gray-600">
+            <span>Tổng cộng:</span>
+            <span className="text-2xl font-bold text-sky-600">{total.toLocaleString('vi-VN')} VND</span>
+          </div>
+
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">Tiền khách đưa:</label>
+            <div className="relative">
+              <input
+                type="number"
+                value={paid}
+                onChange={(e) => setPaid(Number(e.target.value))}
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-sky-500/20 focus:border-sky-500 transition-all text-xl font-semibold outline-none"
+                placeholder="0"
+                autoFocus
+              />
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium">VND</span>
+            </div>
+          </div>
+
+          <div className="p-4 rounded-xl bg-sky-50 border border-sky-100 flex justify-between items-center">
+            <span className="text-sky-800 font-medium">Tiền thừa trả khách:</span>
+            <span className={`text-xl font-bold ${change >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+              {change.toLocaleString('vi-VN')} VND
+            </span>
+          </div>
+
+          <button
+            onClick={() => onConfirm(paid)}
+            disabled={change < 0 || isProcessing}
+            className={`w-full py-4 rounded-xl font-bold text-lg shadow-lg transition-all ${change >= 0 && !isProcessing
+              ? 'bg-sky-600 hover:bg-sky-700 text-white shadow-sky-200 hover:shadow-sky-300'
+              : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              }`}
+          >
+            {isProcessing ? 'Đang xử lý...' : (change >= 0 ? 'Xác nhận thanh toán' : 'Số tiền không đủ')}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const QRPaymentModal = ({ isOpen, onClose, qrData, bookingId, total, onPaymentSuccess }) => {
+  const [verifyStatus] = useVerifyPayOSStatusMutation();
+
+  useEffect(() => {
+    let interval;
+    if (isOpen && bookingId) {
+      interval = setInterval(async () => {
+        try {
+          const result = await verifyStatus({ booking_id: bookingId }).unwrap();
+          if (result.status === "PAID") {
+            clearInterval(interval);
+            onPaymentSuccess();
+          }
+        } catch (error) {
+          console.error("Lỗi kiểm tra trạng thái thanh toán:", error);
+        }
+      }, 3000);
+    }
+    return () => clearInterval(interval);
+  }, [isOpen, bookingId, verifyStatus, onPaymentSuccess]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+        <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+          <h3 className="text-xl font-bold text-gray-800">Quét mã QR thanh toán</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="p-8 space-y-6 text-center">
+          <div className="bg-white p-4 rounded-2xl border-2 border-sky-100 inline-block shadow-inner">
+            <QRCodeCanvas
+              value={qrData}
+              size={220}
+              level="H"
+              includeMargin={true}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-gray-500 text-sm">Tổng tiền cần thanh toán</p>
+            <p className="text-3xl font-black text-sky-600">{total.toLocaleString('vi-VN')} ₫</p>
+          </div>
+
+          <div className="flex items-center justify-center gap-3 p-3 bg-sky-50 rounded-xl border border-sky-100 text-sky-700">
+            <div className="w-2 h-2 bg-sky-600 rounded-full animate-pulse"></div>
+            <span className="text-sm font-medium">Đang chờ khách hàng quét mã...</span>
+          </div>
+
+          <p className="text-[11px] text-gray-400 italic">
+            Hệ thống sẽ tự động cập nhật sau khi thanh toán thành công.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const CheckoutContent = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  
-  // Lấy dữ liệu booking truyền từ Modal sang
+
   const bookingData = location.state?.bookingData || {};
-  console.log("Dữ liệu booking nhận được tại CheckoutPageAdmin:", bookingData);
+  const bookingId = bookingData.booking_id;
 
-  // Nếu không có dữ liệu (user tự gõ URL), bạn có thể xử lý redirect về trang chủ
-  useEffect(() => {
-    if (!bookingData.booking_id) {
-      alert("Không tìm thấy thông tin đặt phòng!");
-      // navigate('/'); // Uncomment để chuyển hướng về trang chủ
-    }
-  }, [bookingData, navigate]);
+  const { data: allServicesResponse, isLoading: isLoadingAllServices } = useGetAllExtraServicesQuery();
+  const { data: bookingDetails, isLoading: isLoadingBooking } = useGetBookingByIdQuery(bookingId, { skip: !bookingId });
+  const [updateBooking, { isLoading: isUpdating }] = useUpdateBookingMutation();
+  const [checkout, { isLoading: isCheckoutLoading }] = useCheckoutMutation();
+  const [createPayOSLink] = useCreatePayOSLinkMutation();
 
-  const [services, setServices] = useState([
-    { id: 1, name: 'Mini-bar (Nước suối, Snack)', date: 'Sử dụng ngày 13/10', price: 40000, quantity: 2, checked: true },
-    { id: 2, name: 'Dịch vụ Spa - Massage toàn thân', date: 'Sử dụng ngày 14/10', price: 450000, quantity: 1, checked: true },
-    { id: 3, name: 'Giặt ủi (Laundry)', date: 'Sử dụng ngày 14/10', price: 50000, quantity: 1, checked: false },
-    { id: 4, name: 'Thuê xe máy', date: 'Sử dụng ngày 13/10', price: 150000, quantity: 1, checked: false },
-    { id: 5, name: 'Ăn sáng tại phòng', date: 'Sử dụng ngày 15/10', price: 120000, quantity: 1, checked: false },
-    { id: 6, name: 'Đưa đón sân bay', date: 'Sử dụng ngày 12/10', price: 300000, quantity: 1, checked: false },
-    { id: 7, name: 'Nước ngọt (Minibar)', date: 'Sử dụng ngày 14/10', price: 20000, quantity: 3, checked: false },
-    { id: 8, name: 'Rượu vang (Minibar)', date: 'Sử dụng ngày 13/10', price: 500000, quantity: 1, checked: false },
-  ]);
-
-  const [damages, setDamages] = useState([
-    { id: 1, name: '', cost: '' }
-  ]);
-
+  const [services, setServices] = useState([]);
   const [paymentMethod, setPaymentMethod] = useState('cash');
+  const [isCashModalOpen, setIsCashModalOpen] = useState(false);
+  const [isQRModalOpen, setIsQRModalOpen] = useState(false);
+  const [qrCodeData, setQrCodeData] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [damages, setDamages] = useState([]);
 
-  // Lấy tiền phòng từ bookingData (thay thế total_amount bằng field thực tế của bạn)
-  const roomFee = Number(bookingData.total_booking_price) || 3600000; 
-  const discount = 200000;
+  useEffect(() => {
+    if (allServicesResponse?.data) {
+      const allServices = allServicesResponse.data;
+      const initialServices = allServices.map(svc => {
+        const existingOrder = bookingDetails?.serviceOrders?.find(so => so.service?.id === svc.id);
+        return {
+          id: svc.id,
+          name: svc.name,
+          price: Number(svc.base_price),
+          quantity: existingOrder ? existingOrder.quantity : 1,
+          checked: !!existingOrder
+        };
+      });
+      setServices(initialServices);
+    }
+  }, [allServicesResponse, bookingDetails]);
 
-  // Format ngày để hiển thị
-  const formatDate = (dateString) => {
-    if (!dateString) return '';
-    return new Date(dateString).toLocaleDateString('vi-VN');
-  };
+  useEffect(() => {
+    if (!bookingId) {
+      alert("Không tìm thấy thông tin đặt phòng!");
+      navigate('/admin');
+    }
+  }, [bookingId, navigate]);
 
-  const checkInDisplay = formatDate(bookingData.check_in);
-  const checkOutDisplay = formatDate(bookingData.check_out);
+  const roomFee = useMemo(() => {
+    if (!bookingDetails?.bookingDetails) return Number(bookingData.total_booking_price) || 0;
+    return bookingDetails.bookingDetails.reduce((sum, detail) => {
+      const nights = Math.ceil((new Date(bookingDetails.check_out_date) - new Date(bookingDetails.check_in_date)) / (1000 * 3600 * 24)) || 1;
+      return sum + (Number(detail.price_at_booking) * detail.quantity * nights);
+    }, 0);
+  }, [bookingDetails, bookingData.total_booking_price]);
 
   const handleQuantityChange = (id, delta) => {
-    setServices(services.map(srv => {
-      if (srv.id === id) {
-        const newQuantity = Math.max(1, srv.quantity + delta);
-        return { ...srv, quantity: newQuantity };
-      }
-      return srv;
-    }));
+    setServices(prev => prev.map(srv => srv.id === id ? { ...srv, quantity: Math.max(1, srv.quantity + delta) } : srv));
   };
 
   const handleCheckChange = (id) => {
-    setServices(services.map(srv => srv.id === id ? { ...srv, checked: !srv.checked } : srv));
+    setServices(prev => prev.map(srv => srv.id === id ? { ...srv, checked: !srv.checked } : srv));
   };
 
-  const handleAddDamageItem = () => {
-    setDamages([...damages, { id: Date.now(), name: '', cost: '' }]);
+  const handleSaveServices = async () => {
+    try {
+      const selectedServices = services.filter(s => s.checked).map(s => ({ service_id: s.id, quantity: s.quantity }));
+      await updateBooking({ id: bookingId, extra_services: selectedServices }).unwrap();
+      alert("Cập nhật dịch vụ thành công!");
+    } catch (error) {
+      alert("Lỗi khi lưu dịch vụ: " + (error.data?.message || error.message));
+    }
   };
 
-  const handleUpdateDamageItem = (id, field, value) => {
-    setDamages(damages.map(item => item.id === id ? { ...item, [field]: value } : item));
+  const handleCheckoutAction = async () => {
+    if (paymentMethod === 'cash') {
+      setIsCashModalOpen(true);
+    } else if (paymentMethod === 'qr') {
+      try {
+        setIsProcessing(true);
+        const result = await createPayOSLink({ booking_id: bookingId }).unwrap();
+        if (result.data?.qrCode) {
+          setQrCodeData(result.data.qrCode);
+          setIsQRModalOpen(true);
+        } else if (result.data?.checkoutUrl) {
+          window.open(result.data.checkoutUrl, '_blank');
+          alert("Vui lòng thanh toán trên trang PayOS.");
+        }
+      } catch (error) {
+        console.error("Lỗi khi tạo link thanh toán:", error);
+        alert("Không thể tạo mã QR thanh toán. Vui lòng thử lại.");
+      } finally {
+        setIsProcessing(false);
+      }
+    }
   };
 
-  const handleRemoveDamageItem = (id) => {
-    setDamages(damages.filter(item => item.id !== id));
+  const handleQRPaymentSuccess = async () => {
+    setIsQRModalOpen(false);
+    try {
+      setIsProcessing(true);
+      await checkout({
+        id: bookingId,
+        payment_method: 'qr',
+        amount_paid: grandTotal
+      }).unwrap();
+      toast.success("Thanh toán thành công! Check-out hoàn tất.");
+      navigate('/admin');
+    } catch (error) {
+      toast.error("Thanh toán thành công nhưng có lỗi khi cập nhật trạng thái ");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const confirmCashCheckout = async (amountPaid) => {
+    try {
+      setIsProcessing(true);
+      await checkout({ id: bookingId, payment_method: 'cash', amount_paid: amountPaid }).unwrap();
+      setIsCashModalOpen(false);
+      toast.success("Check-out thành công!");
+      navigate('/admin');
+    } catch (error) {
+      toast.error("Có lỗi xảy ra khi check-out: " + (error.data?.message || error.message));
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const servicesTotal = services.filter(s => s.checked).reduce((total, s) => total + (s.price * s.quantity), 0);
   const damagesTotal = damages.reduce((total, item) => total + (Number(item.cost) || 0), 0);
   const subTotal = roomFee + servicesTotal + damagesTotal;
-  const vat = subTotal * 0.1; 
-  const grandTotal = subTotal + vat - discount;
+  const vat = subTotal * 0.08;
+  const grandTotal = subTotal + vat;
 
-  const formatMoney = (amount) => {
-    return amount.toLocaleString('vi-VN') + ' ₫';
+  const formatMoney = (amount) => (amount || 0).toLocaleString('vi-VN') + ' ₫';
+
+  const formatDate = (dateString) => {
+    if (!dateString) return '---';
+    return new Date(dateString).toLocaleDateString('vi-VN');
   };
+
+  const checkInDisplay = formatDate(bookingDetails?.check_in_date || bookingData.check_in);
+  const checkOutDisplay = formatDate(bookingDetails?.check_out_date || bookingData.check_out);
 
   return (
     <div className="bg-gray-100 min-h-screen px-8 pb-8 font-sans box-border">
-      {/* Header */}
       <div className="flex justify-between items-center h-[70px] border-b border-gray-200 mb-6">
         <div className="flex items-center gap-4">
-          <button 
-            onClick={() => navigate(-1)} 
-            className="bg-transparent border-none text-2xl cursor-pointer text-gray-600 px-2 hover:text-gray-900 transition"
-          >
-            ←
-          </button>
+          <button onClick={() => navigate(-1)} className="bg-transparent border-none text-2xl cursor-pointer text-gray-600 px-2 hover:text-gray-900 transition">←</button>
           <h2 className="m-0 text-xl font-semibold text-gray-900">Check-out & Thanh toán</h2>
         </div>
         <div className="flex items-center gap-5">
           <span className="cursor-pointer text-xl text-gray-500 hover:text-gray-700">🔔</span>
-          <span className="cursor-pointer text-xl text-gray-500 hover:text-gray-700">⏱️</span>
-          <span className="cursor-pointer text-xl text-gray-500 hover:text-gray-700">❓</span>
           <div className="flex items-center border-l border-gray-300 pl-5">
             <div className="text-right mr-2">
               <p className="m-0 text-sm font-semibold text-gray-900">Admin</p>
@@ -111,242 +314,133 @@ const CheckoutContent = () => {
       </div>
 
       <div className="flex flex-col lg:flex-row gap-6 items-start">
-        
-        {/* CỘT TRÁI */}
         <div className="flex-1 flex flex-col gap-5 w-full">
-          
-          {/* Card Thông tin khách */}
+          {/* Thông tin khách */}
           <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-50">
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-4">
                 <div className="w-[60px] h-[60px] rounded-xl bg-sky-100 flex items-center justify-center text-3xl text-sky-600">⭐</div>
                 <div>
-                  <h3 className="m-0 mb-2 text-xl text-gray-900 font-bold">
-                    {bookingData.guest_name || 'Khách lẻ'}
-                  </h3>
+                  <h3 className="m-0 mb-2 text-xl text-gray-900 font-bold">{bookingDetails?.guest_name || bookingData.guest_name || 'Khách lẻ'}</h3>
                   <div className="flex items-center gap-3 text-sm text-gray-600">
-                    <span className="bg-blue-100 text-blue-800 px-2.5 py-1 rounded-full font-semibold">
-                      Phòng {bookingData.room_number || '---'}
-                    </span>
-                    <span>
-                      📅 {checkInDisplay || '---'} — {checkOutDisplay || '---'} 
-                    </span>
+                    <span className="bg-blue-100 text-blue-800 px-2.5 py-1 rounded-full font-semibold">Phòng {bookingData.room_number || '---'}</span>
+                    <span>📅 {checkInDisplay || '---'} — {checkOutDisplay || '---'}</span>
                   </div>
                 </div>
               </div>
               <div className="text-right">
-                <p className="m-0 mb-1 text-[11px] text-gray-500 uppercase font-semibold">Trạng thái hiện tại</p>
-                <p className="m-0 text-sky-600 font-bold">● {bookingData.status || 'Đang chờ'}</p>
+                <p className="m-0 mb-1 text-[11px] text-gray-500 uppercase font-semibold">Trạng thái</p>
+                <p className="m-0 text-sky-600 font-bold">● {bookingDetails?.status || bookingData.status || 'Đang chờ'}</p>
               </div>
             </div>
           </div>
 
-          {/* Card Tiền phòng */}
+          {/* Tiền phòng */}
           <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-50">
             <h4 className="m-0 text-lg font-bold flex items-center gap-2 mb-4 text-gray-800">🛏️ Tiền phòng</h4>
-            <table className="w-full border-collapse">
+            <table className="w-full">
               <thead>
-                <tr>
-                  <th className="text-left py-3 border-b border-gray-200 text-gray-500 text-xs uppercase font-semibold">Mô tả</th>
-                  <th className="text-left py-3 border-b border-gray-200 text-gray-500 text-xs uppercase font-semibold">Đơn giá</th>
-                  <th className="text-left py-3 border-b border-gray-200 text-gray-500 text-xs uppercase font-semibold">Số lượng</th>
-                  <th className="text-right py-3 border-b border-gray-200 text-gray-500 text-xs uppercase font-semibold">Thành tiền</th>
+                <tr className="text-left text-xs text-gray-500 uppercase font-semibold">
+                  <th className="py-3 border-b">Mô tả</th>
+                  <th className="py-3 border-b text-right">Thành tiền</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td className="py-4 border-b border-gray-50 align-middle text-sm text-gray-800">
-                    Tiền phòng lưu trú<br/>
-                    <span className="text-[13px] text-gray-500">Mã Booking: {bookingData.booking_code || '---'}</span>
-                  </td>
-                  <td className="py-4 border-b border-gray-50 align-middle text-sm text-gray-500">---</td>
-                  <td className="py-4 border-b border-gray-50 align-middle text-sm text-gray-500">---</td>
-                  <td className="py-4 border-b border-gray-50 align-middle text-sm text-right text-sky-600 font-bold">
-                    {formatMoney(roomFee)}
-                  </td>
+                  <td className="py-4 border-b text-sm text-gray-800">Tiền phòng lưu trú<br /><span className="text-xs text-gray-500">Mã: {bookingDetails?.booking_code || bookingData.booking_code}</span></td>
+                  <td className="py-4 border-b text-right text-sky-600 font-bold">{formatMoney(roomFee)}</td>
                 </tr>
               </tbody>
             </table>
           </div>
 
-          {/* Card Dịch vụ */}
+          {/* Dịch vụ */}
           <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-50">
             <div className="flex justify-between items-center mb-4">
-              <h4 className="m-0 flex items-center gap-2 text-lg font-bold text-gray-800">🛎️ Các dịch vụ khả dụng</h4>
+              <h4 className="m-0 text-lg font-bold text-gray-800">🛎️ Dịch vụ</h4>
+              <button onClick={handleSaveServices} disabled={isUpdating} className="px-4 py-2 bg-sky-600 text-white rounded-lg text-sm font-semibold hover:bg-sky-700 disabled:bg-gray-400">Lưu dịch vụ</button>
             </div>
-            
-            <div className="flex flex-col gap-3 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
-              {services.map(srv => (
-                <div key={srv.id} className={`flex justify-between items-center p-4 border border-gray-200 rounded-lg bg-gray-50 transition-all ${srv.checked ? 'opacity-100' : 'opacity-60'}`}>
+            <div className="space-y-3 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
+              {isLoadingAllServices ? [1, 2, 3].map(i => <SkeletonItem key={i} />) : services.map(srv => (
+                <div key={srv.id} className={`flex justify-between items-center p-4 border rounded-lg transition-all ${srv.checked ? 'border-sky-200 bg-sky-50/30' : 'border-gray-100 bg-gray-50 opacity-60'}`}>
                   <div className="flex items-center gap-3">
-                    <input 
-                      type="checkbox" 
-                      checked={srv.checked} 
-                      onChange={() => handleCheckChange(srv.id)} 
-                      className="w-[18px] h-[18px] cursor-pointer shrink-0 accent-sky-600 rounded"
-                    />
+                    <input type="checkbox" checked={srv.checked} onChange={() => handleCheckChange(srv.id)} className="w-4 h-4 accent-sky-600" />
                     <div>
-                      <p className={`m-0 mb-1 font-medium text-gray-800 ${!srv.checked && 'line-through text-gray-500'}`}>
-                        {srv.name}
-                      </p>
-                      <p className="m-0 text-xs text-gray-500">Đơn giá: {formatMoney(srv.price)}</p>
+                      <p className="font-medium text-gray-800">{srv.name}</p>
+                      <p className="text-xs text-gray-500">{formatMoney(srv.price)}</p>
                     </div>
                   </div>
-                  
                   {srv.checked && (
-                    <div className="flex items-center gap-8">
-                      <div className="flex items-center gap-3 bg-gray-200 p-1 rounded-full">
-                        <button onClick={() => handleQuantityChange(srv.id, -1)} className="w-7 h-7 rounded-full border border-gray-300 bg-white flex items-center justify-center text-base hover:bg-gray-50 transition">-</button>
-                        <span className="text-sm font-medium w-5 text-center text-gray-800">{srv.quantity}</span>
-                        <button onClick={() => handleQuantityChange(srv.id, 1)} className="w-7 h-7 rounded-full border border-gray-300 bg-white flex items-center justify-center text-base hover:bg-gray-50 transition">+</button>
+                    <div className="flex items-center gap-6">
+                      <div className="flex items-center gap-2 bg-white border rounded-full p-1 shadow-sm">
+                        <button onClick={() => handleQuantityChange(srv.id, -1)} className="w-6 h-6 rounded-full hover:bg-gray-100">-</button>
+                        <span className="w-4 text-center text-sm">{srv.quantity}</span>
+                        <button onClick={() => handleQuantityChange(srv.id, 1)} className="w-6 h-6 rounded-full hover:bg-gray-100">+</button>
                       </div>
-                      <span className="font-semibold w-20 text-right text-gray-800">{formatMoney(srv.price * srv.quantity)}</span>
+                      <span className="font-semibold text-gray-800 w-24 text-right">{formatMoney(srv.price * srv.quantity)}</span>
                     </div>
                   )}
                 </div>
               ))}
             </div>
           </div>
-
-          {/* Card Bồi thường */}
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-50">
-            <div className="flex justify-between items-center mb-4">
-              <h4 className="m-0 text-lg font-bold flex items-center gap-2 text-amber-700">⚠️ Bồi thường & Hư hại</h4>
-              <button 
-                onClick={handleAddDamageItem} 
-                className="text-amber-700 bg-transparent border border-dashed border-amber-700 rounded-md px-3 py-1.5 cursor-pointer font-medium text-sm hover:bg-amber-50 transition"
-              >
-                + Thêm mục bồi thường
-              </button>
-            </div>
-            
-            <div className="flex flex-col gap-3">
-              {damages.map((item, index) => (
-                <div key={item.id} className="flex gap-4 items-end">
-                  <div className="flex-[2]">
-                    {index === 0 && <label className="block text-xs font-semibold text-gray-500 uppercase mb-2">Tên vật phẩm/Hư hại</label>}
-                    <input 
-                      type="text" 
-                      placeholder="Ví dụ: Vỡ ly thủy tinh..." 
-                      className="w-full p-3 rounded-lg border border-gray-300 bg-gray-50 text-sm outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-gray-800"
-                      value={item.name}
-                      onChange={(e) => handleUpdateDamageItem(item.id, 'name', e.target.value)}
-                    />
-                  </div>
-                  <div className="flex-1">
-                    {index === 0 && <label className="block text-xs font-semibold text-gray-500 uppercase mb-2">Số tiền phạt (₫)</label>}
-                    <input 
-                      type="number" 
-                      className="w-full p-3 rounded-lg border border-gray-300 bg-gray-50 text-sm outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-gray-800"
-                      value={item.cost}
-                      onChange={(e) => handleUpdateDamageItem(item.id, 'cost', e.target.value)}
-                      placeholder="0"
-                    />
-                  </div>
-                  {damages.length > 1 && (
-                    <button 
-                      onClick={() => handleRemoveDamageItem(item.id)}
-                      className="w-11 h-11 flex items-center justify-center bg-red-100 text-red-600 border-none rounded-lg cursor-pointer text-base hover:bg-red-200 transition"
-                      title="Xóa mục này"
-                    >
-                      ✕
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-            
-            {damagesTotal > 0 && (
-              <div className="mt-4 text-right font-bold text-amber-700 text-lg">
-                Tổng bồi thường: {formatMoney(damagesTotal)}
-              </div>
-            )}
-          </div>
-
         </div>
 
-        {/* CỘT PHẢI */}
-        <div className="w-full lg:w-[360px] flex flex-col gap-5 lg:sticky lg:top-6">
-          
-          <div className="bg-stone-50 rounded-xl p-6 shadow-sm border border-gray-200">
-            <h3 className="m-0 mb-5 text-lg font-bold text-gray-800">Tổng hợp chi phí</h3>
-            
-            <div className="flex justify-between mb-3 text-sm">
-              <span className="text-gray-600">Tạm tính (Phòng + Dịch vụ + Phạt)</span>
-              <span className="font-semibold text-gray-800">{formatMoney(subTotal)}</span>
-            </div>
-            <div className="flex justify-between mb-3 text-sm">
-              <span className="text-gray-600">Thuế VAT (10%)</span>
-              <span className="font-semibold text-gray-800">{formatMoney(vat)}</span>
-            </div>
-            <div className="flex justify-between mb-3 text-sm">
-              <span className="text-amber-700 italic">Giảm giá (Ưu đãi)</span>
-              <span className="text-amber-700 font-semibold">-{formatMoney(discount)}</span>
-            </div>
-            
-            <div className="border-t border-dashed border-gray-300 my-5"></div>
-            
-            <div className="flex justify-between items-end">
-              <span className="text-[12px] text-gray-500 uppercase font-bold">Tổng cộng thanh toán</span>
-              <span className="text-3xl font-bold text-sky-600">{formatMoney(grandTotal)}</span>
+        {/* Tổng kết & Thanh toán */}
+        <div className="w-full lg:w-[360px] space-y-5">
+          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+            <h3 className="text-lg font-bold mb-4">Tổng hợp chi phí</h3>
+            <div className="space-y-3 text-sm">
+              <div className="flex justify-between"><span>Tạm tính</span><span>{formatMoney(subTotal)}</span></div>
+              <div className="flex justify-between"><span>VAT (8%)</span><span>{formatMoney(vat)}</span></div>
+              <div className="border-t border-dashed my-4"></div>
+              <div className="flex justify-between items-end">
+                <span className="text-xs font-bold uppercase text-gray-500">Tổng thanh toán</span>
+                <span className="text-2xl font-bold text-sky-600">{formatMoney(grandTotal)}</span>
+              </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-50">
-            <h3 className="m-0 mb-4 text-base font-bold text-gray-800">Phương thức thanh toán</h3>
-            <div className="flex flex-col gap-3">
-              
-              <div 
-                className={`flex items-center gap-4 p-4 border rounded-lg cursor-pointer transition-all ${paymentMethod === 'cash' ? 'border-sky-600 bg-sky-50 shadow-sm' : 'border-gray-200 bg-white hover:bg-gray-50'}`}
-                onClick={() => setPaymentMethod('cash')}
-              >
-                <div className="text-2xl">💵</div>
-                <div>
-                  <p className="m-0 mb-1 font-semibold text-sm text-gray-800">Tiền mặt</p>
-                  <p className="m-0 text-xs text-gray-500">Thanh toán tại quầy</p>
-                </div>
+          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+            <h3 className="text-base font-bold mb-4">Phương thức thanh toán</h3>
+            <div className="space-y-3">
+              <div onClick={() => setPaymentMethod('cash')} className={`p-4 border rounded-xl cursor-pointer transition-all flex items-center gap-4 ${paymentMethod === 'cash' ? 'border-sky-600 bg-sky-50' : 'border-gray-100 hover:bg-gray-50'}`}>
+                <span className="text-2xl">💵</span>
+                <div><p className="font-semibold text-sm">Tiền mặt</p><p className="text-xs text-gray-500">Thanh toán tại quầy</p></div>
               </div>
-
-              <div 
-                className={`flex items-center gap-4 p-4 border rounded-lg cursor-pointer transition-all ${paymentMethod === 'card' ? 'border-sky-600 bg-sky-50 shadow-sm' : 'border-gray-200 bg-white hover:bg-gray-50'}`}
-                onClick={() => setPaymentMethod('card')}
-              >
-                <div className="text-2xl">💳</div>
-                <div>
-                  <p className="m-0 mb-1 font-semibold text-sm text-gray-800">Thẻ tín dụng</p>
-                  <p className="m-0 text-xs text-gray-500">Visa, Mastercard, JCB</p>
-                </div>
+              <div onClick={() => setPaymentMethod('qr')} className={`p-4 border rounded-xl cursor-pointer transition-all flex items-center gap-4 ${paymentMethod === 'qr' ? 'border-sky-600 bg-sky-50' : 'border-gray-100 hover:bg-gray-50'}`}>
+                <span className="text-2xl">📱</span>
+                <div><p className="font-semibold text-sm">Chuyển khoản QR</p><p className="text-xs text-gray-500">PayOS</p></div>
               </div>
-
-              <div 
-                className={`flex items-center gap-4 p-4 border rounded-lg cursor-pointer transition-all ${paymentMethod === 'qr' ? 'border-sky-600 bg-sky-50 shadow-sm' : 'border-gray-200 bg-white hover:bg-gray-50'}`}
-                onClick={() => setPaymentMethod('qr')}
-              >
-                <div className="text-2xl">📱</div>
-                <div>
-                  <p className="m-0 mb-1 font-semibold text-sm text-gray-800">Chuyển khoản QR</p>
-                  <p className="m-0 text-xs text-gray-500">VietQR, MoMo, VNPay</p>
-                </div>
-              </div>
-
             </div>
           </div>
 
-          <div>
-            <button className="w-full flex items-center justify-center gap-3 bg-sky-600 text-white border-none rounded-xl p-4 text-base font-bold cursor-pointer shadow-md hover:bg-sky-700 hover:shadow-lg transition-all active:scale-[0.98]">
-              <span className="text-2xl">🖨️</span>
-              <div className="text-left">
-                <p className="m-0 leading-tight">Hoàn tất Check-out &</p>
-                <p className="m-0 leading-tight">In hóa đơn</p>
-              </div>
-            </button>
-            <p className="text-center text-[11px] text-gray-400 mt-3 font-semibold tracking-wide">
-              THAO TÁC NÀY SẼ CẬP NHẬT PHÒNG THÀNH TRẠNG THÁI 'ĐANG DỌN DẸP'
-            </p>
-          </div>
-
+          <button
+            onClick={handleCheckoutAction}
+            disabled={isCheckoutLoading || isProcessing}
+            className="w-full py-4 bg-sky-600 text-white rounded-xl font-bold text-lg shadow-lg hover:bg-sky-700 disabled:bg-gray-400 transition-all flex flex-col items-center justify-center leading-tight"
+          >
+            {isCheckoutLoading || isProcessing ? 'Đang xử lý...' : (
+              <>
+                <span>Hoàn tất Check-out &</span>
+                <span className="text-sm opacity-90 font-normal mt-0.5">Cập nhật trạng thái phòng</span>
+              </>
+            )}
+          </button>
+          <p className="text-[10px] text-center text-gray-400 font-medium uppercase tracking-widest">Phòng sẽ chuyển sang trạng thái "Dọn dẹp"</p>
         </div>
       </div>
+
+      <CashPaymentModal isOpen={isCashModalOpen} onClose={() => setIsCashModalOpen(false)} total={grandTotal} onConfirm={confirmCashCheckout} isProcessing={isProcessing} />
+
+      <QRPaymentModal
+        isOpen={isQRModalOpen}
+        onClose={() => setIsQRModalOpen(false)}
+        qrData={qrCodeData}
+        bookingId={bookingId}
+        total={grandTotal}
+        onPaymentSuccess={handleQRPaymentSuccess}
+      />
     </div>
   );
 };
