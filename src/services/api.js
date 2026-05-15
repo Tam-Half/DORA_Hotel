@@ -4,7 +4,7 @@ const API_URL = window.__ENV__?.API_URL || "http://localhost:3000";
 
 const api = axios.create({
     //   baseURL: `${API_URL}/api`,
-    baseURL: import.meta.env.VITE_API_URL,
+    baseURL: import.meta.env.VITE_API_URL || `${API_URL}/api`,
     headers: {
         "Content-Type": "application/json",
     },
