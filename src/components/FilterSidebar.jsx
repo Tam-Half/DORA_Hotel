@@ -6,7 +6,7 @@ export default function FilterSidebar({
   filters, 
   onFilterChange, 
   onReset, 
-  availableRoomClasses = [] 
+  availableRoomTypes = [] 
 }) {
   const formatCurrency = (amount) =>
     new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount).replace('₫', 'đ');
@@ -15,11 +15,11 @@ export default function FilterSidebar({
     onFilterChange({ price: Number(e.target.value) });
   };
 
-  const handleClassToggle = (className) => {
-    const newClasses = filters.roomClasses.includes(className)
-      ? filters.roomClasses.filter(c => c !== className)
-      : [...filters.roomClasses, className];
-    onFilterChange({ roomClasses: newClasses });
+  const handleTypeToggle = (typeName) => {
+    const newTypes = filters.roomTypes.includes(typeName)
+      ? filters.roomTypes.filter(t => t !== typeName)
+      : [...filters.roomTypes, typeName];
+    onFilterChange({ roomTypes: newTypes });
   };
 
   const handleAmenityToggle = (amenity) => {
@@ -68,25 +68,26 @@ export default function FilterSidebar({
         </div>
       </div>
 
-      {/* --- HẠNG PHÒNG --- */}
-      {availableRoomClasses.length > 0 && (
+      {/* --- LOẠI PHÒNG --- */}
+      {availableRoomTypes.length > 0 && (
         <div className="mb-6 border-t border-gray-100 pt-6">
-          <h4 className="font-semibold text-sm mb-3">Hạng phòng</h4>
+          <h4 className="font-semibold text-sm mb-3">Loại phòng</h4>
           <div className="space-y-3">
-            {availableRoomClasses.map((className, idx) => (
+            {availableRoomTypes.map((typeName, idx) => (
               <label key={idx} className="flex items-center gap-3 cursor-pointer group">
                 <input 
                   type="checkbox" 
-                  checked={filters.roomClasses.includes(className)}
-                  onChange={() => handleClassToggle(className)}
+                  checked={filters.roomTypes.includes(typeName)}
+                  onChange={() => handleTypeToggle(typeName)}
                   className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 transition-colors" 
                 />
-                <span className="text-gray-600 text-sm group-hover:text-gray-900 transition-colors">{className}</span>
+                <span className="text-gray-600 text-sm group-hover:text-gray-900 transition-colors">{typeName}</span>
               </label>
             ))}
           </div>
         </div>
       )}
+
 
       {/* --- ĐÁNH GIÁ --- */}
       <div className="mb-6 border-t border-gray-100 pt-6">

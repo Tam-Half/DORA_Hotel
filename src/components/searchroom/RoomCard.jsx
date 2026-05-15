@@ -52,11 +52,11 @@ export default function RoomCard({ room, startDate, endDate }) {
             <span className="bg-blue-50 text-blue-600 text-xs font-semibold px-2 py-1 rounded">
               {room.capacity_people > 1 ? 'Phòng Đôi' : 'Phòng Đơn'}
             </span>
-            {room.roomClass && (
+            {/* {room.roomClass && (
               <span className="bg-amber-50 text-amber-600 text-xs font-semibold px-2 py-1 rounded border border-amber-100 uppercase tracking-wider">
                 {room.roomClass.name}
               </span>
-            )}
+            )} */}
           </div>
           <div className="flex items-center gap-1 text-orange-500 text-sm font-bold">
             <Star size={14} fill="currentColor" />
