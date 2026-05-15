@@ -11,6 +11,7 @@ const formatDateTime = (dateString) => {
   if (!dateString) return '---';
   return new Date(dateString).toLocaleString('vi-VN');
 };
+const API_URL = window.__ENV__?.API_URL || "http://localhost:3000";
 
 export default function ShiftDetailModal({ isOpen, onClose, shiftId = 1 }) {
   const [loading, setLoading] = useState(false);
@@ -26,7 +27,7 @@ export default function ShiftDetailModal({ isOpen, onClose, shiftId = 1 }) {
     setLoading(true);
     try {
       // Gọi API lấy thông tin ca
-      const response = await fetch(`http://localhost:3000/api/shifts/${shiftId}`);
+      const response = await fetch(`${API_URL}/api/shifts/${shiftId}`);
       const result = await response.json();
       
       // Dựa vào cấu trúc JSON bạn đưa: { data: { ... } }
