@@ -13,7 +13,9 @@ export const AuthProvider = ({ children }) => {
             const token = authAPI.getToken();
             if (token) {
                 const response = await userAPI.getProfile();
+                localStorage.setItem('user_profile', JSON.stringify(response));
                 setUser(response);
+
             }
         } catch (error) {
             console.error('Failed to fetch profile:', error);

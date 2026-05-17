@@ -3,7 +3,8 @@ import { Building2, Moon } from 'lucide-react';
 import RoomInfoSidebar from '../components/admin/detailroom/RoomInfoSidebar';
 import CustomerInfoSection from '../components/admin/detailroom/CustomerInfoSection'; // <-- Đã đổi tên import
 import { useLocation, Navigate } from 'react-router-dom';
-const AdminHeader = () => (
+const AdminHeader = (user) => (
+   console.log(user) ||
   <header className="bg-white border-b border-gray-200 h-16 px-6 flex items-center justify-between sticky top-0 z-50">
     <div className="flex items-center gap-2">
       <div className="bg-blue-600 p-1.5 rounded-lg text-white">
@@ -18,11 +19,11 @@ const AdminHeader = () => (
       </button>
       <div className="flex items-center gap-3 pl-6 border-l border-gray-200">
         <div className="text-right hidden md:block">
-          <p className="text-sm font-bold text-gray-900">Admin</p>
+          <p className="text-sm font-bold text-gray-900">{user ? user?.user?.name : 'Admin'}</p>
           <p className="text-xs text-gray-500">Quản trị viên</p>
         </div>
-        <div className="w-10 h-10 bg-yellow-200 rounded-full flex items-center justify-center text-yellow-700 border-2 border-white shadow-sm overflow-hidden">
-          <img src="https://ui-avatars.com/api/?name=Admin&background=fde047&color=854d0e" alt="Admin" />
+        <div className="w-10 h-10  rounded-full flex items-center justify-center text-yellow-700 bg-white-200 border-2 border-blue-500 shadow-sm overflow-hidden">
+          <img  src={user ? user?.user?.avatar_url : "https://ui-avatars.com/api/?name=Admin&background=fde047&color=854d0e"} alt="Admin" />
         </div>
       </div>
     </div>
@@ -32,9 +33,11 @@ const AdminHeader = () => (
 export default function RoomManagePage() {
   const location = useLocation();
   const room = location.state;
+  const userString = localStorage.getItem('user_profile');
+  const user = userString ? JSON.parse(userString) : null;
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
-      <AdminHeader />
+      <AdminHeader user={user} />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">

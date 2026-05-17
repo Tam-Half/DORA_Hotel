@@ -4,7 +4,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import { Search, Calendar, Users, ChevronLeft, ChevronRight, Filter, CheckCircle, Clock } from 'lucide-react';
 import roomAPI from '../../../services/room'; // Đảm bảo đường dẫn đúng
 import BookingDetailModal from '../Model/BookingModalDetail'; // Đảm bảo đường dẫn đúng
-
+import { useNavigate } from 'react-router-dom';
 const ITEMS_PER_PAGE = 5;
 
 const DateInput = forwardRef(({ value, onClick, placeholder }, ref) => (
@@ -19,7 +19,13 @@ const DateInput = forwardRef(({ value, onClick, placeholder }, ref) => (
 ));
 
 export default function CustomerInfoSection({ room }) {
+
   console.log('Received room prop in CustomerInfoSection:', room);
+
+
+  const navigate = useNavigate();
+
+
 
   // --- STATE TÌM KIẾM TẠM THỜI (Khi người dùng đang gõ) ---
   const [searchInputCode, setSearchInputCode] = useState('');
@@ -308,7 +314,7 @@ export default function CustomerInfoSection({ room }) {
         )}
       </div>
 
-      <BookingDetailModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} booking={selectedBooking} onCheckIn={handleCheckIn} onCheckOut={handleCheckOut} />
+      <BookingDetailModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} booking={selectedBooking} onCheckIn={handleCheckIn} onCheckOut={handleCheckOut} room_number={room?.room_number} />
     </div>
   );
 }

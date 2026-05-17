@@ -42,7 +42,7 @@ export default function StartShiftModal({ isOpen, onClose, onSuccess }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center  bg-black bg-opacity-80">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 animate-fade-in-up">
         <h2 className="text-xl font-bold text-gray-900 mb-4 border-b pb-3">Bắt Đầu Ca Làm Việc Mới</h2>
         

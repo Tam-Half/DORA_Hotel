@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom'; // 1. Thêm import này
 import bookingAPI from '../../../services/booking';
 
-const BookingDetailModal = ({ isOpen, onClose, booking, onCheckIn, onCheckOut }) => {
+const BookingDetailModal = ({ isOpen, onClose, booking, onCheckIn, onCheckOut , room_number }) => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate(); // 2. Khởi tạo navigate
 
   if (!isOpen || !booking) return null;
+  console.log('Room number in Modal:', room_number);
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -42,7 +43,7 @@ const BookingDetailModal = ({ isOpen, onClose, booking, onCheckIn, onCheckOut })
   const handleGoToCheckout = () => {
     onClose(); // Đóng modal
     // Chuyển hướng đến route /checkout và đính kèm dữ liệu booking vào state
-    navigate('/admin/checkout', { state: { bookingData: booking } });
+    navigate('/admin/checkout', { state: { bookingData: booking, room_number: room_number } }); // Truyền room_number nếu cần
   };
 
   return (

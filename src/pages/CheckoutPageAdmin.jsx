@@ -5,6 +5,8 @@ import { useGetBookingByIdQuery, useUpdateBookingMutation, useCheckoutMutation }
 import { useCreatePayOSLinkMutation, useVerifyPayOSStatusMutation } from '../services/payment';
 import { QRCodeCanvas } from 'qrcode.react';
 import { toast } from 'react-toastify';
+import { HandPlatter, HandCoins, UserStar, CalendarClock, BellRing } from 'lucide-react';
+import { useParams } from "react-router-dom";
 
 const SkeletonItem = () => (
   <div className="flex justify-between items-center p-4 border border-gray-100 rounded-lg bg-gray-50/50 animate-pulse">
@@ -25,6 +27,7 @@ const SkeletonItem = () => (
 const CashPaymentModal = ({ isOpen, onClose, total, onConfirm, isProcessing }) => {
   const [paid, setPaid] = useState(total);
   const change = paid - total;
+
 
   useEffect(() => {
     if (isOpen) setPaid(total);
@@ -157,6 +160,8 @@ const CheckoutContent = () => {
   const navigate = useNavigate();
 
   const bookingData = location.state?.bookingData || {};
+  const room_number = location.state?.room_number || {};
+  console.log("Booking data received in CheckoutContent:", bookingData);
   const bookingId = bookingData.booking_id;
 
   const { data: allServicesResponse, isLoading: isLoadingAllServices } = useGetAllExtraServicesQuery();
@@ -172,6 +177,9 @@ const CheckoutContent = () => {
   const [qrCodeData, setQrCodeData] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [damages, setDamages] = useState([]);
+
+  const userString = localStorage.getItem('user_profile');
+  console.log("User profile string from localStorage:", userString);
 
   useEffect(() => {
     if (allServicesResponse?.data) {
@@ -302,13 +310,13 @@ const CheckoutContent = () => {
           <h2 className="m-0 text-xl font-semibold text-gray-900">Check-out & Thanh toán</h2>
         </div>
         <div className="flex items-center gap-5">
-          <span className="cursor-pointer text-xl text-gray-500 hover:text-gray-700">🔔</span>
+          <BellRing className="cursor-pointer text-xl text-yellow-500 hover:text-gray-700"/>
           <div className="flex items-center border-l border-gray-300 pl-5">
             <div className="text-right mr-2">
-              <p className="m-0 text-sm font-semibold text-gray-900">Admin</p>
+              <p className="m-0 text-sm font-semibold text-gray-900">{ userString ? JSON.parse(userString).name :  'Admin'}</p>
               <p className="m-0 text-xs text-gray-500">Quản lý ca trực</p>
             </div>
-            <div className="w-9 h-9 rounded-full bg-teal-700 text-white flex items-center justify-center font-bold">A</div>
+            <img className="w-9 h-9 rounded-full border-2 border-blue-500 text-white flex items-center justify-center font-bold" src={userString ? JSON.parse(userString).avatar_url : undefined} alt="Avatar" />
           </div>
         </div>
       </div>
@@ -319,13 +327,23 @@ const CheckoutContent = () => {
           <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-50">
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-4">
-                <div className="w-[60px] h-[60px] rounded-xl bg-sky-100 flex items-center justify-center text-3xl text-sky-600">⭐</div>
+                <UserStar className="w-[60px] h-[60px] rounded-xl bg-sky-100 flex items-center justify-center text-3xl text-sky-600" />
                 <div>
                   <h3 className="m-0 mb-2 text-xl text-gray-900 font-bold">{bookingDetails?.guest_name || bookingData.guest_name || 'Khách lẻ'}</h3>
-                  <div className="flex items-center gap-3 text-sm text-gray-600">
-                    <span className="bg-blue-100 text-blue-800 px-2.5 py-1 rounded-full font-semibold">Phòng {bookingData.room_number || '---'}</span>
-                    <span>📅 {checkInDisplay || '---'} — {checkOutDisplay || '---'}</span>
-                  </div>
+                 <div className="flex items-center gap-4 text-sm text-gray-600">
+  
+  <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-semibold">
+    Phòng { room_number || '---'}
+  </span>
+
+  <div className="flex items-center gap-2">
+    <CalendarClock className="w-4 h-4 text-gray-700 font-bold" />
+    <span className="text-gray-700 font-bold">
+      {checkInDisplay || '---'} — {checkOutDisplay || '---'}
+    </span>
+  </div>
+
+</div>
                 </div>
               </div>
               <div className="text-right">
@@ -337,7 +355,10 @@ const CheckoutContent = () => {
 
           {/* Tiền phòng */}
           <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-50">
-            <h4 className="m-0 text-lg font-bold flex items-center gap-2 mb-4 text-gray-800">🛏️ Tiền phòng</h4>
+            <div className="flex items-center gap-3 mb-4">
+              <HandCoins className="text-sky-600" />
+              <h4 className="m-0 text-lg font-bold text-gray-800">Tiền phòng</h4>
+            </div>
             <table className="w-full">
               <thead>
                 <tr className="text-left text-xs text-gray-500 uppercase font-semibold">
@@ -357,7 +378,8 @@ const CheckoutContent = () => {
           {/* Dịch vụ */}
           <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-50">
             <div className="flex justify-between items-center mb-4">
-              <h4 className="m-0 text-lg font-bold text-gray-800">🛎️ Dịch vụ</h4>
+              <HandPlatter className="text-sky-600" />
+              <h4 className="m-0 text-lg font-bold text-gray-800 text-sky-600"> Dịch vụ</h4>
               <button onClick={handleSaveServices} disabled={isUpdating} className="px-4 py-2 bg-sky-600 text-white rounded-lg text-sm font-semibold hover:bg-sky-700 disabled:bg-gray-400">Lưu dịch vụ</button>
             </div>
             <div className="space-y-3 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
@@ -405,11 +427,11 @@ const CheckoutContent = () => {
             <h3 className="text-base font-bold mb-4">Phương thức thanh toán</h3>
             <div className="space-y-3">
               <div onClick={() => setPaymentMethod('cash')} className={`p-4 border rounded-xl cursor-pointer transition-all flex items-center gap-4 ${paymentMethod === 'cash' ? 'border-sky-600 bg-sky-50' : 'border-gray-100 hover:bg-gray-50'}`}>
-                <span className="text-2xl">💵</span>
+                <img src="https://res.cloudinary.com/dhw2yjevk/image/upload/v1779026409/dollars_ev3spb.webp" alt="PayOS" className="w-6 h-6 object-contain" />
                 <div><p className="font-semibold text-sm">Tiền mặt</p><p className="text-xs text-gray-500">Thanh toán tại quầy</p></div>
               </div>
               <div onClick={() => setPaymentMethod('qr')} className={`p-4 border rounded-xl cursor-pointer transition-all flex items-center gap-4 ${paymentMethod === 'qr' ? 'border-sky-600 bg-sky-50' : 'border-gray-100 hover:bg-gray-50'}`}>
-                <span className="text-2xl">📱</span>
+                <img src="https://res.cloudinary.com/dhw2yjevk/image/upload/v1779021749/payosicons_zxjumz.png" alt="PayOS" className="w-6 h-6 object-contain" />
                 <div><p className="font-semibold text-sm">Chuyển khoản QR</p><p className="text-xs text-gray-500">PayOS</p></div>
               </div>
             </div>

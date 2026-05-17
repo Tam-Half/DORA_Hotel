@@ -12,8 +12,17 @@ const reportAPI = {
         } catch (error) {
             throw error.response?.data || error.message;
         }
+    },
+    compareMonths: async (month1, month2) => {
+        try {
+            const response = await api.get("/reports/compare", {
+                params: { month1, month2 }
+            });
+            return response.data;
+        } catch (error) {
+            throw error.response?.data || error.message;
+        }
     }
-
 };
 
 export default reportAPI;

@@ -57,9 +57,8 @@ function useCompareData(enabled, month1, month2) {
     setLoading(true);
     setError(null);
     // Lưu ý: Đoạn axios này giữ nguyên theo code gốc của bạn
-    axios
-      .get(`${API_BASE}/reports/compare`, { params: { month1, month2 } })
-      .then((res) => setData(res.data.data))
+    reportAPI.compareMonths(month1, month2)
+      .then((res) => setData(res.data))
       .catch((err) => setError(err?.response?.data?.message ?? "Lỗi so sánh tháng"))
       .finally(() => setLoading(false));
   }, [enabled, month1, month2]);
