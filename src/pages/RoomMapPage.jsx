@@ -13,8 +13,8 @@ import shiftAPI from '../services/shift';
 import ShiftDetailModal from '../components/admin/Model/ShiftDetailModal';
 import EndShiftModal from '../components/admin/Model/EndShiftModal';
 // IMPORT THÊM MODAL MỞ CA
-import StartShiftModal from '../components/admin/Model/StartShiftModal'; 
-
+import StartShiftModal from '../components/admin/Model/StartShiftModal';
+import ShiftListModal from '../components/admin/Model/ShiftListModal';
 import { useNavigate } from 'react-router-dom';
 import QRScannerModal from '../components/admin/Model/QRScannerModal';
 import QRScanResultModal from '../components/admin/Model/QRScanResultModal';
@@ -40,7 +40,8 @@ export default function RoomMapPage() {
   const [isStartShiftModalOpen, setIsStartShiftModalOpen] = useState(false);
   const [isShiftModalOpen, setIsShiftModalOpen] = useState(false);
   const [isEndShiftModalOpen, setIsEndShiftModalOpen] = useState(false);
-  
+  const [isListModalOpen, setListModalOpen] = useState(false);
+
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
@@ -75,13 +76,13 @@ export default function RoomMapPage() {
     const fetchRooms = async () => {
       try {
         setLoading(true);
-        const response = await roomAPI.getRoomGridStatus(); 
+        const response = await roomAPI.getRoomGridStatus();
         const rawData = Array.isArray(response) ? response : (response.data || []);
 
         const mappedData = rawData.map(room => {
-          let uiStatus = 'AVAILABLE'; 
-          if (room.status === 'CHECKED_IN') uiStatus = 'BOOKED'; 
-          else if (room.status === 'MAINTENANCE') uiStatus = 'MAINTENANCE'; 
+          let uiStatus = 'AVAILABLE';
+          if (room.status === 'CHECKED_IN') uiStatus = 'BOOKED';
+          else if (room.status === 'MAINTENANCE') uiStatus = 'MAINTENANCE';
 
           return { ...room, ui_status: uiStatus, guestName: room.current_guest };
         });
@@ -124,7 +125,7 @@ export default function RoomMapPage() {
     return floors.sort((a, b) => a.id - b.id);
   }, [rooms]);
 
-  const renderRoomsByFloor = (floorId, floorName) => { /* Giữ nguyên UI RoomCard của bạn */ 
+  const renderRoomsByFloor = (floorId, floorName) => { /* Giữ nguyên UI RoomCard của bạn */
     const roomsInFloor = filteredRooms.filter(r => r.floor?.id === floorId);
     if (roomsInFloor.length === 0) return null;
     return (
@@ -147,6 +148,7 @@ export default function RoomMapPage() {
           <p className="text-sm text-gray-500">Xem và quản lý trạng thái phòng theo thời gian thực</p>
         </div>
         <div className="flex gap-3">
+          <button onClick={() => setListModalOpen(true)} className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 shadow-sm transition">Danh Sách Ca</button>
           <button onClick={() => navigate('/admin/dashboard')} className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 shadow-sm transition">Doanh Thu</button>
           <button onClick={() => setIsScannerOpen(true)} className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 flex items-center gap-2 shadow-sm transition">
             <QrCode size={18} /> Quét mã QR
@@ -155,8 +157,8 @@ export default function RoomMapPage() {
           {/* LOGIC ĐIỀU KHIỂN NÚT CA LÀM VIỆC */}
           {!currentShiftId ? (
             // Nếu CHƯA MỞ CA -> Hiện nút Mở Ca màu Xanh lá
-            <button 
-              onClick={() => setIsStartShiftModalOpen(true)} 
+            <button
+              onClick={() => setIsStartShiftModalOpen(true)}
               className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 flex items-center gap-2 shadow-sm shadow-emerald-200 transition"
             >
               <PlayCircle size={18} /> Mở Ca Mới
@@ -164,14 +166,14 @@ export default function RoomMapPage() {
           ) : (
             // Nếu ĐÃ MỞ CA -> Hiện nút Xem Thông Tin và Kết Ca
             <>
-              <button 
-                onClick={() => setIsShiftModalOpen(true)} 
+              <button
+                onClick={() => setIsShiftModalOpen(true)}
                 className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 flex items-center gap-2 text-gray-700"
               >
                 <ReceiptText size={18} className="text-blue-600" /> Xem Thông Tin Ca
               </button>
-              <button 
-                onClick={() => setIsEndShiftModalOpen(true)} 
+              <button
+                onClick={() => setIsEndShiftModalOpen(true)}
                 className="px-4 py-2 bg-rose-600 text-white rounded-lg text-sm font-medium hover:bg-rose-700 flex items-center gap-2 shadow-sm shadow-rose-200 transition"
               >
                 <RotateCcw size={18} /> Kết Ca
@@ -186,10 +188,10 @@ export default function RoomMapPage() {
         <div className="hidden lg:block lg:col-span-1 sticky top-6">
           <RoomMapSidebar activeFloor={activeFloor} onSelectFloor={setActiveFloor} statusCounts={statusCounts} />
         </div>
-        
+
         {/* Nội dung bên trong bộ lọc giữ nguyên... */}
         <div className="lg:col-span-4 space-y-6">
-         
+
           <div className="min-h-[500px]">
             {loading && <div className="text-center text-gray-500 py-10">Đang tải...</div>}
             {!loading && (activeFloor === 'all' ? (uniqueFloors.length > 0 ? uniqueFloors.map(floor => renderRoomsByFloor(floor.id, floor.name)) : <div className="text-center">Không có dữ liệu</div>) : renderRoomsByFloor(activeFloor, uniqueFloors.find(f => f.id === activeFloor)?.name || `Tầng ${activeFloor}`))}
@@ -198,7 +200,7 @@ export default function RoomMapPage() {
       </div>
 
       {/* --- CÁC MODALS --- */}
-      
+
       {/* 1. Modal Mở Ca */}
       <StartShiftModal
         isOpen={isStartShiftModalOpen}
@@ -226,6 +228,12 @@ export default function RoomMapPage() {
           setCurrentShiftId(null); // Reset ID ca về null để hiện lại nút Mở Ca
         }}
       />
+
+      <ShiftListModal
+        isOpen={isListModalOpen}
+        onClose={() => setListModalOpen(false)}
+      />
+
 
       <QRScannerModal isOpen={isScannerOpen} onClose={() => setIsScannerOpen(false)} onScanSuccess={handleScanSuccess} />
       {isDetailModalOpen && selectedBooking && <QRScanResultModal isOpen={isDetailModalOpen} booking={selectedBooking} onClose={() => setIsDetailModalOpen(false)} />}
