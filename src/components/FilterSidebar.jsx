@@ -2,11 +2,11 @@
 import React from 'react';
 import { Filter, Star } from 'lucide-react';
 
-export default function FilterSidebar({ 
-  filters, 
-  onFilterChange, 
-  onReset, 
-  availableRoomTypes = [] 
+export default function FilterSidebar({
+  filters,
+  onFilterChange,
+  onReset,
+  availableRoomTypes = []
 }) {
   const formatCurrency = (amount) =>
     new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount).replace('₫', 'đ');
@@ -39,7 +39,7 @@ export default function FilterSidebar({
         <h3 className="font-bold text-lg flex items-center gap-2">
           <Filter size={20} className="text-blue-600" /> Bộ lọc
         </h3>
-        <button 
+        <button
           onClick={onReset}
           className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
         >
@@ -53,14 +53,14 @@ export default function FilterSidebar({
           <h4 className="font-semibold text-sm">Giá tối đa (đêm)</h4>
           <span className="text-blue-600 font-bold text-sm">{formatCurrency(filters.price)}</span>
         </div>
-        <input 
-          type="range" 
-          min="0" 
-          max="10000000" 
+        <input
+          type="range"
+          min="0"
+          max="10000000"
           step="100000"
           value={filters.price}
           onChange={handlePriceChange}
-          className="w-full accent-blue-500 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer mb-3" 
+          className="w-full accent-blue-500 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer mb-3"
         />
         <div className="flex justify-between text-[10px] text-gray-400 font-medium">
           <span>0đ</span>
@@ -75,11 +75,11 @@ export default function FilterSidebar({
           <div className="space-y-3">
             {availableRoomTypes.map((typeName, idx) => (
               <label key={idx} className="flex items-center gap-3 cursor-pointer group">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   checked={filters.roomTypes.includes(typeName)}
                   onChange={() => handleTypeToggle(typeName)}
-                  className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 transition-colors" 
+                  className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 transition-colors"
                 />
                 <span className="text-gray-600 text-sm group-hover:text-gray-900 transition-colors">{typeName}</span>
               </label>
@@ -97,11 +97,10 @@ export default function FilterSidebar({
             <button
               key={star}
               onClick={() => handleRatingChange(star)}
-              className={`flex items-center gap-1 px-3 py-1.5 rounded-lg border text-sm font-medium transition-all ${
-                filters.rating === star 
-                  ? 'bg-blue-50 border-blue-500 text-blue-600 shadow-sm' 
+              className={`flex items-center gap-1 px-3 py-1.5 rounded-lg border text-sm font-medium transition-all ${filters.rating === star
+                  ? 'bg-blue-50 border-blue-500 text-blue-600 shadow-sm'
                   : 'bg-white border-gray-200 text-gray-600 hover:border-blue-300'
-              }`}
+                }`}
             >
               <Star size={14} fill={filters.rating === star ? "currentColor" : "none"} className={filters.rating === star ? "text-blue-600" : "text-orange-400"} />
               {star}+
@@ -111,7 +110,7 @@ export default function FilterSidebar({
       </div>
 
       {/* --- TIỆN NGHI --- */}
-      <div className="mb-6 border-t border-gray-100 pt-6">
+      {/* <div className="mb-6 border-t border-gray-100 pt-6">
         <h4 className="font-semibold text-sm mb-3">Tiện nghi</h4>
         <div className="space-y-3">
           {['Wifi miễn phí', 'Bữa sáng miễn phí', 'Bể bơi', 'Ban công / View đẹp'].map((item, idx) => (
@@ -126,7 +125,7 @@ export default function FilterSidebar({
             </label>
           ))}
         </div>
-      </div>
+      </div> */}
     </div>
   );
-}
+}

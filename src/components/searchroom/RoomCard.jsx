@@ -58,11 +58,11 @@ export default function RoomCard({ room, startDate, endDate }) {
               </span>
             )} */}
           </div>
-          <div className="flex items-center gap-1 text-orange-500 text-sm font-bold">
+          {/* <div className="flex items-center gap-1 text-orange-500 text-sm font-bold">
             <Star size={14} fill="currentColor" />
             <span>{Number(room.average_rating).toFixed(1)}</span>
             <span className="text-gray-400 font-normal">({room.review_count})</span>
-          </div>
+          </div> */}
         </div>
 
         {/* Tên phòng */}

@@ -10,6 +10,11 @@ export default function RoomReviews({ averageRating, totalReviews }) {
   const { data: reviewsData, isLoading } = useGetReviewsByRoomTypeQuery(id);
   const reviews = reviewsData?.data || [];
 
+  const reviewsCount = reviews.length;
+  const computedAverageRating = reviewsCount > 0
+    ? reviews.reduce((sum, review) => sum + Number(review.rating || 0), 0) / reviewsCount
+    : 0;
+
   const MAX = 8;
   const [showAll, setShowAll] = useState(false);
 
@@ -29,10 +34,10 @@ export default function RoomReviews({ averageRating, totalReviews }) {
       <div className="flex items-center gap-2 mb-6">
         <img src={StarIcon} alt="" className="w-[20px] h-[20px]" />
         <span className="font-bold text-2xl text-gray-900">
-          {Number(averageRating).toFixed(1)}
+          {Number(computedAverageRating).toFixed(1)}
         </span>
         <span className="text-gray-500 font-medium ml-1">
-          ({totalReviews} đánh giá)
+          ({reviewsCount} đánh giá)
         </span>
       </div>
 
