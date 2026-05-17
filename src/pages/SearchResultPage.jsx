@@ -49,7 +49,7 @@ export default function SearchResultPage() {
   // --- FILTER STATE ---
   const [filters, setFilters] = useState({
     price: 3000000, // Default max price
-    roomClasses: [], // Selected room class names
+    roomTypes: [], // Selected room type names
     amenities: [],
     rating: 0
   });
@@ -110,8 +110,8 @@ export default function SearchResultPage() {
   const filteredRooms = rooms.filter(room => {
     const price = room.basePrice || room.base_price || 0;
     const matchesPrice = price <= filters.price;
-    const matchesClass = filters.roomClasses.length === 0 ||
-      (room.roomClass && filters.roomClasses.includes(room.roomClass.name));
+    const matchesType = filters.roomTypes.length === 0 ||
+      filters.roomTypes.includes(room.name);
     const matchesRating = (room.average_rating || 0) >= filters.rating;
 
     // For amenities, assuming room.amenities is an array of strings or objects
@@ -121,7 +121,7 @@ export default function SearchResultPage() {
         roomAmenities.some(ra => (typeof ra === 'string' ? ra : ra.name) === a)
       );
 
-    return matchesPrice && matchesClass && matchesRating && matchesAmenities;
+    return matchesPrice && matchesType && matchesRating && matchesAmenities;
   });
 
   const handleFilterChange = (newFilters) => {
@@ -131,7 +131,7 @@ export default function SearchResultPage() {
   const handleResetFilters = () => {
     setFilters({
       price: 5000000,
-      roomClasses: [],
+      roomTypes: [],
       amenities: [],
       rating: 0
     });
@@ -237,7 +237,7 @@ export default function SearchResultPage() {
               filters={filters}
               onFilterChange={handleFilterChange}
               onReset={handleResetFilters}
-              availableRoomClasses={[...new Set(rooms.map(r => r.roomClass?.name).filter(Boolean))]}
+              availableRoomTypes={[...new Set(rooms.map(r => r.name).filter(Boolean))]}
             />
           </div>
           <div className="lg:col-span-3">
