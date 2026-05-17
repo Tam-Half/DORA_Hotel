@@ -1,4 +1,5 @@
 import api from './api';
+import { useNavigate } from 'react-router-dom';
 
 const authAPI = {
     login: async (credentials) => {
@@ -22,6 +23,7 @@ const authAPI = {
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
         localStorage.removeItem('user');
+        window.location.href = '/';
     },
 
     getToken: () => {
