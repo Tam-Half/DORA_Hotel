@@ -3,6 +3,7 @@ import { X, Save, AlertTriangle, LogOut, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import shiftAPI from '../../../services/shift';
 import { useAuth } from "../../../context/AuthContext";
+import { toast } from 'react-toastify';
 
 const formatCurrency = (val) => new Intl.NumberFormat('vi-VN').format(val);
 
@@ -64,8 +65,8 @@ export default function EndShiftModal({ isOpen, onClose, shiftId }) {
       if (res.message === "Chốt ca thành công") {
         onClose();
         logout();
-
         navigate('/login');
+
       } else {
         alert("Lỗi khi chốt ca");
       }

@@ -1,10 +1,9 @@
 import React from 'react';
-import { Building2, Moon } from 'lucide-react';
+import { Building2, Moon, BellRing } from 'lucide-react';
 import RoomInfoSidebar from '../components/admin/detailroom/RoomInfoSidebar';
 import CustomerInfoSection from '../components/admin/detailroom/CustomerInfoSection'; // <-- Đã đổi tên import
 import { useLocation, Navigate } from 'react-router-dom';
 const AdminHeader = (user) => (
-   console.log(user) ||
   <header className="bg-white border-b border-gray-200 h-16 px-6 flex items-center justify-between sticky top-0 z-50">
     <div className="flex items-center gap-2">
       <div className="bg-blue-600 p-1.5 rounded-lg text-white">
@@ -15,7 +14,8 @@ const AdminHeader = (user) => (
 
     <div className="flex items-center gap-6">
       <button className="text-gray-500 hover:text-gray-900">
-        <Moon size={20} />
+                 <BellRing className="cursor-pointer text-xl text-yellow-500 hover:text-gray-700" />
+
       </button>
       <div className="flex items-center gap-3 pl-6 border-l border-gray-200">
         <div className="text-right hidden md:block">
