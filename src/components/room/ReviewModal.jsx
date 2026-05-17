@@ -7,7 +7,7 @@ const ReviewModal = ({ isOpen, onClose, bookingId, roomType, roomTypeId }) => {
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
   const [hover, setHover] = useState(0);
-  
+
   const [createReview, { isLoading }] = useCreateReviewMutation();
 
   if (!isOpen) return null;
@@ -21,7 +21,7 @@ const ReviewModal = ({ isOpen, onClose, bookingId, roomType, roomTypeId }) => {
         rating,
         comment
       }).unwrap();
-      
+
       toast.success("Cảm ơn bạn đã để lại đánh giá!");
       onClose();
     } catch (err) {
@@ -30,9 +30,9 @@ const ReviewModal = ({ isOpen, onClose, bookingId, roomType, roomTypeId }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/50 ">
       <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200">
-        
+
         {/* Header */}
         <div className="p-5 border-b border-gray-100 flex items-center justify-between">
           <div>
@@ -60,20 +60,19 @@ const ReviewModal = ({ isOpen, onClose, bookingId, roomType, roomTypeId }) => {
                 >
                   <Star
                     size={40}
-                    className={`transition-colors duration-200 ${
-                      (hover || rating) >= star 
-                        ? 'fill-yellow-400 text-yellow-400' 
+                    className={`transition-colors duration-200 ${(hover || rating) >= star
+                        ? 'fill-yellow-400 text-yellow-400'
                         : 'text-gray-300 fill-gray-100'
-                    }`}
+                      }`}
                   />
                 </button>
               ))}
             </div>
             <span className="text-lg font-bold text-gray-700">
-              {rating === 5 ? 'Tuyệt vời! 😍' : 
-               rating === 4 ? 'Rất tốt! 🙂' :
-               rating === 3 ? 'Bình thường 😐' :
-               rating === 2 ? 'Không tốt lắm 😕' : 'Rất tệ 😡'}
+              {rating === 5 ? 'Tuyệt vời! 😍' :
+                rating === 4 ? 'Rất tốt! 🙂' :
+                  rating === 3 ? 'Bình thường 😐' :
+                    rating === 2 ? 'Không tốt lắm 😕' : 'Rất tệ 😡'}
             </span>
           </div>
 
