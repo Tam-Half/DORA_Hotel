@@ -12,8 +12,8 @@ const QRScannerModal = ({ isOpen, onClose, onScanSuccess }) => {
       const timer = setTimeout(() => {
         const scanner = new Html5QrcodeScanner(
           elementId,
-          { 
-            fps: 10, 
+          {
+            fps: 10,
             qrbox: { width: 250, height: 250 },
             aspectRatio: 1.0,
             showTorchButtonIfSupported: true,
@@ -49,7 +49,7 @@ const QRScannerModal = ({ isOpen, onClose, onScanSuccess }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4  bg-black/50">
       {/* CSS CUSTOM để làm đẹp giao diện mặc định của thư viện */}
       <style>{`
         #${elementId} {
@@ -91,8 +91,8 @@ const QRScannerModal = ({ isOpen, onClose, onScanSuccess }) => {
             </div>
             <h2 className="text-lg font-bold text-gray-900">Quét mã QR Booking</h2>
           </div>
-          <button 
-            onClick={onClose} 
+          <button
+            onClick={onClose}
             className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-400"
           >
             <X size={20} />
@@ -104,7 +104,7 @@ const QRScannerModal = ({ isOpen, onClose, onScanSuccess }) => {
           <div className="w-full bg-white rounded-xl shadow-inner p-4 border border-gray-100">
             <div id={elementId}></div>
           </div>
-          
+
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-500 font-medium font-sans px-4">
               Cho phép truy cập máy ảnh và đưa mã QR của khách hàng vào khung hình để tự động nhận diện.

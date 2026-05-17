@@ -1,6 +1,16 @@
 import api from './api';
 
 const shiftAPI = {
+
+    getAllShifts: async () => {
+        try {
+            const response = await api.get(`/shifts/`);
+            return response.data;
+        } catch (error) {
+            throw error.response?.data || error.message;
+        }
+    },
+
     // [THÊM MỚI] Hàm mở ca làm việc
     startShift: async (payload) => {
         try {
@@ -16,6 +26,7 @@ const shiftAPI = {
     getShiftByID: async (shiftId) => {
         try {
             const response = await api.get(`/shifts/${shiftId}`);
+
             return response.data;
         } catch (error) {
             throw error.response?.data || error.message;
@@ -43,7 +54,18 @@ const shiftAPI = {
         catch (error) {
             throw error.response?.data || error.message;
         }
-    }
+    },
+
+    getShiftReport: async (shiftId) => {
+        try {
+            const response = await api.get(`/shifts/${shiftId}`);
+            return response.data;
+        }
+        catch (error) {
+            throw error.response?.data || error.message;
+        }
+    },
+
 };
 
 export default shiftAPI;

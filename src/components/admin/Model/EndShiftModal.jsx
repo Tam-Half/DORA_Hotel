@@ -80,7 +80,7 @@ export default function EndShiftModal({ isOpen, onClose, shiftId }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center  bg-black/50">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden">
 
         {/* Header màu cam cảnh báo vì đây là hành động quan trọng */}
