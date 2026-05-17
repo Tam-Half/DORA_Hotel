@@ -182,6 +182,7 @@ const CheckoutContent = () => {
           id: svc.id,
           name: svc.name,
           price: Number(svc.base_price),
+          category: svc.category,
           quantity: existingOrder ? existingOrder.quantity : 1,
           checked: !!existingOrder
         };
@@ -250,10 +251,12 @@ const CheckoutContent = () => {
     setIsQRModalOpen(false);
     try {
       setIsProcessing(true);
+      const selectedServices = services.filter(s => s.checked).map(s => ({ service_id: s.id, quantity: s.quantity }));
       await checkout({
         id: bookingId,
         payment_method: 'qr',
-        amount_paid: grandTotal
+        amount_paid: grandTotal,
+        extra_services: selectedServices
       }).unwrap();
       toast.success("Thanh toán thành công! Check-out hoàn tất.");
       navigate('/admin');
@@ -267,7 +270,13 @@ const CheckoutContent = () => {
   const confirmCashCheckout = async (amountPaid) => {
     try {
       setIsProcessing(true);
-      await checkout({ id: bookingId, payment_method: 'cash', amount_paid: amountPaid }).unwrap();
+      const selectedServices = services.filter(s => s.checked).map(s => ({ service_id: s.id, quantity: s.quantity }));
+      await checkout({ 
+        id: bookingId, 
+        payment_method: 'cash', 
+        amount_paid: amountPaid,
+        extra_services: selectedServices 
+      }).unwrap();
       setIsCashModalOpen(false);
       toast.success("Check-out thành công!");
       navigate('/admin');
@@ -354,34 +363,76 @@ const CheckoutContent = () => {
             </table>
           </div>
 
-          {/* Dịch vụ */}
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-50">
-            <div className="flex justify-between items-center mb-4">
-              <h4 className="m-0 text-lg font-bold text-gray-800">🛎️ Dịch vụ</h4>
-              <button onClick={handleSaveServices} disabled={isUpdating} className="px-4 py-2 bg-sky-600 text-white rounded-lg text-sm font-semibold hover:bg-sky-700 disabled:bg-gray-400">Lưu dịch vụ</button>
-            </div>
-            <div className="space-y-3 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
-              {isLoadingAllServices ? [1, 2, 3].map(i => <SkeletonItem key={i} />) : services.map(srv => (
-                <div key={srv.id} className={`flex justify-between items-center p-4 border rounded-lg transition-all ${srv.checked ? 'border-sky-200 bg-sky-50/30' : 'border-gray-100 bg-gray-50 opacity-60'}`}>
-                  <div className="flex items-center gap-3">
-                    <input type="checkbox" checked={srv.checked} onChange={() => handleCheckChange(srv.id)} className="w-4 h-4 accent-sky-600" />
-                    <div>
-                      <p className="font-medium text-gray-800">{srv.name}</p>
-                      <p className="text-xs text-gray-500">{formatMoney(srv.price)}</p>
-                    </div>
-                  </div>
-                  {srv.checked && (
-                    <div className="flex items-center gap-6">
-                      <div className="flex items-center gap-2 bg-white border rounded-full p-1 shadow-sm">
-                        <button onClick={() => handleQuantityChange(srv.id, -1)} className="w-6 h-6 rounded-full hover:bg-gray-100">-</button>
-                        <span className="w-4 text-center text-sm">{srv.quantity}</span>
-                        <button onClick={() => handleQuantityChange(srv.id, 1)} className="w-6 h-6 rounded-full hover:bg-gray-100">+</button>
+          {/* Dịch vụ & Minibar */}
+          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-50 space-y-8">
+            {/* Section 1: Minibar */}
+            <div>
+              <div className="flex justify-between items-center mb-4">
+                <h4 className="m-0 text-lg font-bold text-gray-800 flex items-center gap-2">
+                  🍹 Minibar & Đồ dùng tại phòng
+                </h4>
+                <span className="text-xs text-gray-400 font-medium italic">Ghi nhận tiêu thụ tại phòng</span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {isLoadingAllServices ? [1, 2].map(i => <SkeletonItem key={i} />) : services.filter(s => s.category === 'Minibar').map(srv => (
+                  <div key={srv.id} className={`flex justify-between items-center p-3 border rounded-xl transition-all ${srv.checked ? 'border-sky-200 bg-sky-50/50 shadow-sm' : 'border-gray-100 bg-gray-50 opacity-60'}`}>
+                    <div className="flex items-center gap-3">
+                      <input type="checkbox" checked={srv.checked} onChange={() => handleCheckChange(srv.id)} className="w-4 h-4 accent-sky-600 rounded" />
+                      <div>
+                        <p className="text-sm font-semibold text-gray-800">{srv.name}</p>
+                        {srv.price === 0 ? (
+                          <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded font-bold uppercase">Miễn phí</span>
+                        ) : (
+                          <p className="text-xs text-gray-500 font-medium">{formatMoney(srv.price)}</p>
+                        )}
                       </div>
-                      <span className="font-semibold text-gray-800 w-24 text-right">{formatMoney(srv.price * srv.quantity)}</span>
                     </div>
-                  )}
-                </div>
-              ))}
+                    {srv.checked && (
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-lg p-0.5 shadow-sm">
+                          <button onClick={() => handleQuantityChange(srv.id, -1)} className="w-5 h-5 flex items-center justify-center rounded-md hover:bg-gray-100 text-gray-500">-</button>
+                          <span className="w-4 text-center text-xs font-bold">{srv.quantity}</span>
+                          <button onClick={() => handleQuantityChange(srv.id, 1)} className="w-5 h-5 flex items-center justify-center rounded-md hover:bg-gray-100 text-gray-500">+</button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="border-t border-gray-100 pt-6">
+              <div className="flex justify-between items-center mb-4">
+                <h4 className="m-0 text-lg font-bold text-gray-800 flex items-center gap-2">
+                  🛎️ Dịch vụ khác
+                </h4>
+                <button onClick={handleSaveServices} disabled={isUpdating} className="px-3 py-1.5 bg-gray-800 text-white rounded-lg text-xs font-bold hover:bg-gray-900 disabled:bg-gray-400 transition-colors">
+                  Lưu thay đổi
+                </button>
+              </div>
+              <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                {isLoadingAllServices ? [1, 2].map(i => <SkeletonItem key={i} />) : services.filter(s => s.category !== 'Minibar').map(srv => (
+                  <div key={srv.id} className={`flex justify-between items-center p-4 border rounded-lg transition-all ${srv.checked ? 'border-sky-200 bg-sky-50/30' : 'border-gray-100 bg-gray-50 opacity-60'}`}>
+                    <div className="flex items-center gap-3">
+                      <input type="checkbox" checked={srv.checked} onChange={() => handleCheckChange(srv.id)} className="w-4 h-4 accent-sky-600" />
+                      <div>
+                        <p className="font-medium text-gray-800">{srv.name}</p>
+                        <p className="text-xs text-gray-500">{formatMoney(srv.price)}</p>
+                      </div>
+                    </div>
+                    {srv.checked && (
+                      <div className="flex items-center gap-6">
+                        <div className="flex items-center gap-2 bg-white border rounded-full p-1 shadow-sm">
+                          <button onClick={() => handleQuantityChange(srv.id, -1)} className="w-6 h-6 rounded-full hover:bg-gray-100">-</button>
+                          <span className="w-4 text-center text-sm">{srv.quantity}</span>
+                          <button onClick={() => handleQuantityChange(srv.id, 1)} className="w-6 h-6 rounded-full hover:bg-gray-100">+</button>
+                        </div>
+                        <span className="font-semibold text-gray-800 w-24 text-right">{formatMoney(srv.price * srv.quantity)}</span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
