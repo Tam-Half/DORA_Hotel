@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { Mail, Eye, EyeOff, Loader2, User } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-toastify';
 
 export default function LoginForm() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -27,7 +28,10 @@ export default function LoginForm() {
         password: formData.password
       });
       toast.success('Đăng nhập thành công!');
-      navigate('/');
+      
+      const from = location.state?.from || '/';
+      const checkoutState = location.state?.checkoutState;
+      navigate(from, { state: checkoutState });
     } catch (err) {
       console.error('Login error:', err);
       setError(err.message || 'Có lỗi xảy ra khi đăng nhập');

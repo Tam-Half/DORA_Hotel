@@ -8,10 +8,19 @@ import { useSearchAvailabilityMutation } from '../../services/availability';
 import { toast } from 'react-toastify';
 
 export default function HeroSection() {
-  const [startDate, setStartDate] = useState(new Date());
-  const [endDate, setEndDate] = useState(new Date(new Date().setDate(new Date().getDate() + 1)));
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  const dayAfterTomorrow = new Date();
+  dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
+
+  const [startDate, setStartDate] = useState(tomorrow);
+  const [endDate, setEndDate] = useState(dayAfterTomorrow);
   const [rooms, setRooms] = useState(1);
   const navigate = useNavigate();
+
+  const minEndDate = new Date(startDate);
+  minEndDate.setDate(minEndDate.getDate() + 1);
 
   const [searchAvailability, { isLoading }] = useSearchAvailabilityMutation();
 
@@ -65,10 +74,17 @@ export default function HeroSection() {
             </label>
             <DatePicker
               selected={startDate}
-              onChange={date => setStartDate(date)}
+              onChange={date => {
+                setStartDate(date);
+                if (endDate <= date) {
+                  const nextDay = new Date(date);
+                  nextDay.setDate(nextDay.getDate() + 1);
+                  setEndDate(nextDay);
+                }
+              }}
               className="w-full border-b-2 border-gray-200 pb-2 text-gray-900 font-semibold focus:outline-none focus:border-blue-500 bg-transparent cursor-pointer"
               dateFormat="dd/MM/yyyy"
-              minDate={new Date()}
+              minDate={tomorrow}
               locale={vi}
             />
           </div>
@@ -83,7 +99,7 @@ export default function HeroSection() {
               onChange={date => setEndDate(date)}
               className="w-full border-b-2 border-gray-200 pb-2 text-gray-900 font-semibold focus:outline-none focus:border-blue-500 bg-transparent cursor-pointer"
               dateFormat="dd/MM/yyyy"
-              minDate={startDate}
+              minDate={minEndDate}
               locale={vi}
             />
           </div>

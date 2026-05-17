@@ -8,6 +8,7 @@ import { useCreateBookingMutation } from '../../services/booking';
 import { useCreatePayOSLinkMutation } from '../../services/payment';
 import { toast } from 'react-toastify';
 import { Loader2 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 // Component con để hiển thị từng dòng khách (Người lớn, Trẻ em...)
 const GuestCounter = ({ label, subLabel, value, onDecrease, onIncrease, max = 10 }) => (
@@ -40,18 +41,26 @@ const GuestCounter = ({ label, subLabel, value, onDecrease, onIncrease, max = 10
 
 export default function BookingCard({ room, initialCheckIn, initialCheckOut }) {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
   const [createBooking, { isLoading: isBookingLoading }] = useCreateBookingMutation();
   const [createPayOSLink, { isLoading: isPaymentLoading }] = useCreatePayOSLinkMutation();
 
   const [pricePerNight] = useState(room?.basePrice || room?.base_price || 2500000);
 
   // State cho Lịch (Ngày bắt đầu - Ngày kết thúc)
-  const [startDate, setStartDate] = useState(initialCheckIn ? new Date(initialCheckIn) : new Date());
+  const [startDate, setStartDate] = useState(initialCheckIn ? new Date(initialCheckIn) : tomorrow);
   const [endDate, setEndDate] = useState(
     initialCheckOut
       ? new Date(initialCheckOut)
       : new Date(new Date().setDate(new Date().getDate() + 3))
   );
+
+  const minEndDate = new Date(startDate);
+  minEndDate.setDate(minEndDate.getDate() + 1);
 
   // --- LOGIC TÍNH TOÁN ---
   // Tính số đêm
@@ -63,15 +72,27 @@ export default function BookingCard({ room, initialCheckIn, initialCheckOut }) {
   const formatCurrency = (amount) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount).replace('₫', 'đ');
 
   const handleBooking = () => {
-    navigate('/checkout', {
-      state: {
-        room,
-        startDate: startDate.toISOString(),
-        endDate: endDate.toISOString(),
-        nights,
-        totalPrice
-      }
-    });
+    const checkoutState = {
+      room,
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+      nights,
+      totalPrice
+    };
+
+    if (!isAuthenticated) {
+      toast.info("Vui lòng đăng nhập để tiếp tục đặt phòng");
+      navigate('/login', {
+        state: {
+          from: '/checkout',
+          checkoutState: checkoutState
+        }
+      });
+    } else {
+      navigate('/checkout', {
+        state: checkoutState
+      });
+    }
   };
 
   const isProcessing = isBookingLoading || isPaymentLoading;
@@ -95,11 +116,18 @@ export default function BookingCard({ room, initialCheckIn, initialCheckOut }) {
             <label className="block text-[10px] font-bold text-gray-700 uppercase mb-1">Nhận phòng</label>
             <DatePicker
               selected={startDate}
-              onChange={(date) => setStartDate(date)}
+              onChange={(date) => {
+                setStartDate(date);
+                if (endDate <= date) {
+                   const nextDay = new Date(date);
+                   nextDay.setDate(nextDay.getDate() + 1);
+                   setEndDate(nextDay);
+                }
+              }}
               selectsStart
               startDate={startDate}
               endDate={endDate}
-              minDate={new Date()}
+              minDate={tomorrow}
               locale={vi}
               dateFormat="dd/MM/yyyy"
               className="w-full bg-transparent text-sm text-gray-700 outline-none cursor-pointer p-0"
@@ -113,7 +141,7 @@ export default function BookingCard({ room, initialCheckIn, initialCheckOut }) {
               selectsEnd
               startDate={startDate}
               endDate={endDate}
-              minDate={startDate}
+              minDate={minEndDate}
               locale={vi}
               dateFormat="dd/MM/yyyy"
               className="w-full bg-transparent text-sm text-gray-700 outline-none cursor-pointer p-0"

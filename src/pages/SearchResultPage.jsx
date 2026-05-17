@@ -33,11 +33,17 @@ export default function SearchResultPage() {
   const initialResults = location.state?.results;
   const initialParams = location.state?.searchParams;
 
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  const dayAfterTomorrow = new Date();
+  dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 3);
+
   // --- STATE ---
   const [dateRange, setDateRange] = useState(
     initialParams
       ? [new Date(initialParams.checkIn), new Date(initialParams.checkOut)]
-      : [new Date(), new Date(new Date().setDate(new Date().getDate() + 2))]
+      : [tomorrow, dayAfterTomorrow]
   );
   const [startDate, endDate] = dateRange;
   const [roomsCount, setRoomsCount] = useState(initialParams?.rooms || 1);
@@ -162,10 +168,19 @@ export default function SearchResultPage() {
                     selectsRange={true}
                     startDate={startDate}
                     endDate={endDate}
-                    onChange={(update) => setDateRange(update)}
+                    onChange={(update) => {
+                      const [start, end] = update;
+                      if (start && end && start.getTime() === end.getTime()) {
+                        const nextDay = new Date(start);
+                        nextDay.setDate(nextDay.getDate() + 1);
+                        setDateRange([start, nextDay]);
+                      } else {
+                        setDateRange(update);
+                      }
+                    }}
                     locale={vi}
                     dateFormat="dd/MM"
-                    minDate={new Date()}
+                    minDate={tomorrow}
                     customInput={<CustomDateInput />}
                     monthsShown={2}
                     withPortal
