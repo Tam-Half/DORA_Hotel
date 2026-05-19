@@ -11,10 +11,8 @@ const shiftAPI = {
         }
     },
 
-    // [THÊM MỚI] Hàm mở ca làm việc
     startShift: async (payload) => {
         try {
-            // payload sẽ chứa { staffId, initialCash }
             const response = await api.post(`/shifts/start`, payload);
             return response.data;
         } catch (error) {
@@ -22,7 +20,6 @@ const shiftAPI = {
         }
     },
 
-    // --- CÁC HÀM CŨ GIỮ NGUYÊN ---
     getShiftByID: async (shiftId) => {
         try {
             const response = await api.get(`/shifts/${shiftId}`);
