@@ -107,7 +107,7 @@ export default function CheckoutPage() {
     };
 
     const updateServiceQuantity = (serviceId, delta) => {
-        setSelectedServices(prev => 
+        setSelectedServices(prev =>
             prev.map(s => {
                 if (s.id === serviceId) {
                     const newQty = Math.max(1, s.quantity + delta);
@@ -274,17 +274,17 @@ export default function CheckoutPage() {
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {servicesResult?.data?.map((service) => {
+                                {servicesResult?.data?.filter(service => service.category !== 'Minibar' && service.category !== 'Laundry' && service.category !== 'Food & Beverage' && service.category !== 'Spa & Wellness').map((service) => {
                                     const selectedService = selectedServices.find(s => s.id === service.id);
                                     const isSelected = !!selectedService;
-                                    
+
                                     return (
                                         <div
                                             key={service.id}
                                             className={`flex flex-col p-4 rounded-xl border-2 transition ${isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-50 hover:border-gray-100 bg-gray-50/50'}`}
                                         >
                                             <div className="flex items-center justify-between mb-2">
-                                                <div 
+                                                <div
                                                     className="flex items-center gap-3 cursor-pointer flex-1"
                                                     onClick={() => handleServiceToggle(service)}
                                                 >
@@ -296,10 +296,10 @@ export default function CheckoutPage() {
                                                         <p className="text-xs text-blue-600 font-semibold">+{formatCurrency(service.base_price)}</p>
                                                     </div>
                                                 </div>
-                                                
+
                                                 {isSelected && (
                                                     <div className="flex items-center gap-3 bg-white px-2 py-1 rounded-lg border border-blue-100 shadow-sm">
-                                                        <button 
+                                                        <button
                                                             onClick={(e) => { e.stopPropagation(); updateServiceQuantity(service.id, -1); }}
                                                             className="text-blue-600 hover:bg-blue-50 p-1 rounded transition"
                                                             disabled={selectedService.quantity <= 1}
@@ -307,7 +307,7 @@ export default function CheckoutPage() {
                                                             <Minus size={14} />
                                                         </button>
                                                         <span className="font-bold text-sm min-w-[20px] text-center">{selectedService.quantity}</span>
-                                                        <button 
+                                                        <button
                                                             onClick={(e) => { e.stopPropagation(); updateServiceQuantity(service.id, 1); }}
                                                             className="text-blue-600 hover:bg-blue-50 p-1 rounded transition"
                                                         >

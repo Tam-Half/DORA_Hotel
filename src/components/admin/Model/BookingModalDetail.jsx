@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom'; // 1. Thêm import này
 import bookingAPI from '../../../services/booking';
 
-const BookingDetailModal = ({ isOpen, onClose, booking, onCheckIn, onCheckOut , room_number }) => {
+const BookingDetailModal = ({ isOpen, onClose, booking, onCheckIn, onCheckOut, room_number }) => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate(); // 2. Khởi tạo navigate
 
@@ -15,7 +15,7 @@ const BookingDetailModal = ({ isOpen, onClose, booking, onCheckIn, onCheckOut , 
   const checkInDate = new Date(booking.check_in_date || booking.check_in);
   checkInDate.setHours(0, 0, 0, 0);
 
-  const isBeforeCheckInDate = today < checkInDate; 
+  const isBeforeCheckInDate = today < checkInDate;
   const canCheckIn = booking.status !== 'CHECKED_IN' && booking.status !== 'EXPIRED';
   const canCheckOut = booking.status === 'CHECKED_IN';
 
@@ -28,7 +28,7 @@ const BookingDetailModal = ({ isOpen, onClose, booking, onCheckIn, onCheckOut , 
     try {
       setIsLoading(true);
       await bookingAPI.updateRoomStatus(booking.booking_id, 'CHECKED_IN', booking.allocation_id);
-      
+
       alert('Nhận phòng thành công!');
       if (onCheckIn) onCheckIn();
       onClose();
@@ -86,7 +86,7 @@ const BookingDetailModal = ({ isOpen, onClose, booking, onCheckIn, onCheckOut , 
             </div>
             <div>
               <p style={styles.label}>Thanh toán</p>
-              <span style={{...styles.tag, backgroundColor: booking.payment_status === 'unpaid' ? '#fee2e2' : '#dcfce3', color: booking.payment_status === 'unpaid' ? '#991b1b' : '#166534'}}>
+              <span style={{ ...styles.tag, backgroundColor: booking.payment_status === 'unpaid' ? '#fee2e2' : '#dcfce3', color: booking.payment_status === 'unpaid' ? '#991b1b' : '#166534' }}>
                 {booking.payment_status === 'unpaid' ? 'Chưa thanh toán' : 'Đã thanh toán'}
               </span>
             </div>
@@ -100,21 +100,21 @@ const BookingDetailModal = ({ isOpen, onClose, booking, onCheckIn, onCheckOut , 
         {/* Footer chứa nút Action */}
         <div style={styles.footer}>
           <button onClick={onClose} style={styles.btnDefault} disabled={isLoading}>Đóng</button>
-          
+
           {/* 4. Đổi onClick gọi handleGoToCheckout */}
-          <button 
+          <button
             onClick={handleGoToCheckout}
-            disabled={!canCheckOut || isLoading}
-            style={{...styles.btnAction, opacity: (!canCheckOut || isLoading) ? 0.5 : 1, backgroundColor: '#ef4444', color: '#fff'}}
+            // disabled={!canCheckOut || isLoading}
+            style={{ ...styles.btnAction, opacity: (!canCheckOut || isLoading) ? 0.5 : 1, backgroundColor: '#ef4444', color: '#fff' }}
           >
             Làm thủ tục trả phòng
           </button>
 
-          <button 
+          <button
             onClick={handleCheckInAction}
             disabled={!canCheckIn || isBeforeCheckInDate || isLoading}
             title={isBeforeCheckInDate ? "Chưa đến ngày nhận phòng" : ""}
-            style={{...styles.btnAction, opacity: (!canCheckIn || isBeforeCheckInDate || isLoading) ? 0.5 : 1, backgroundColor: '#22c55e', color: '#fff'}}
+            style={{ ...styles.btnAction, opacity: (!canCheckIn || isBeforeCheckInDate || isLoading) ? 0.5 : 1, backgroundColor: '#22c55e', color: '#fff' }}
           >
             {isLoading ? 'Đang xử lý...' : (isBeforeCheckInDate ? 'Chưa đến ngày Check-in' : 'Nhận phòng')}
           </button>

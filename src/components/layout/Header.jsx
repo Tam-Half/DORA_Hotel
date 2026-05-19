@@ -84,7 +84,7 @@ export default function Header() {
                   Đăng nhập
                 </button>
                 <button
-                  onClick={() => navigate('/login')} // Update to /register if separate
+                  onClick={() => navigate('/register')} // Update to /register if separate
                   className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-full font-bold text-sm transition-transform hover:scale-105 shadow-lg shadow-blue-200"
                 >
                   Đăng ký

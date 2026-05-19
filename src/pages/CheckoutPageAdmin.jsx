@@ -6,7 +6,6 @@ import { useCreatePayOSLinkMutation, useVerifyPayOSStatusMutation } from '../ser
 import { QRCodeCanvas } from 'qrcode.react';
 import { toast } from 'react-toastify';
 import { HandPlatter, HandCoins, UserStar, CalendarClock, BellRing, Martini } from 'lucide-react';
-import { useParams } from "react-router-dom";
 
 const SkeletonItem = () => (
   <div className="flex justify-between items-center p-4 border border-gray-100 rounded-lg bg-gray-50/50 animate-pulse">
@@ -165,7 +164,7 @@ const CheckoutContent = () => {
   const bookingId = bookingData.booking_id;
 
   const { data: allServicesResponse, isLoading: isLoadingAllServices } = useGetAllExtraServicesQuery();
-  const { data: bookingDetails, isLoading: isLoadingBooking } = useGetBookingByIdQuery(bookingId, { skip: !bookingId });
+  const { data: bookingDetails } = useGetBookingByIdQuery(bookingId, { skip: !bookingId });
   const [updateBooking, { isLoading: isUpdating }] = useUpdateBookingMutation();
   const [checkout, { isLoading: isCheckoutLoading }] = useCheckoutMutation();
   const [createPayOSLink] = useCreatePayOSLinkMutation();
@@ -177,6 +176,7 @@ const CheckoutContent = () => {
   const [qrCodeData, setQrCodeData] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [damages, setDamages] = useState([]);
+  const [initialBookingPrice, setInitialBookingPrice] = useState(null);
 
   const userString = localStorage.getItem('user_profile');
   console.log("User profile string from localStorage:", userString);
@@ -206,6 +206,12 @@ const CheckoutContent = () => {
     }
   }, [bookingId, navigate]);
 
+  useEffect(() => {
+    if (bookingDetails && initialBookingPrice === null) {
+      setInitialBookingPrice(Number(bookingDetails.total_price) || 0);
+    }
+  }, [bookingDetails, initialBookingPrice]);
+
   const roomFee = useMemo(() => {
     if (!bookingDetails?.bookingDetails) return Number(bookingData.total_booking_price) || 0;
     return bookingDetails.bookingDetails.reduce((sum, detail) => {
@@ -233,12 +239,17 @@ const CheckoutContent = () => {
   };
 
   const handleCheckoutAction = async () => {
+    if (remainingBalance === 0) {
+      await confirmCashCheckout(0);
+      return;
+    }
+
     if (paymentMethod === 'cash') {
       setIsCashModalOpen(true);
     } else if (paymentMethod === 'qr') {
       try {
         setIsProcessing(true);
-        const result = await createPayOSLink({ booking_id: bookingId }).unwrap();
+        const result = await createPayOSLink({ booking_id: bookingId, amount: remainingBalance }).unwrap();
         if (result.data?.qrCode) {
           setQrCodeData(result.data.qrCode);
           setIsQRModalOpen(true);
@@ -263,7 +274,7 @@ const CheckoutContent = () => {
       await checkout({
         id: bookingId,
         payment_method: 'qr',
-        amount_paid: grandTotal,
+        amount_paid: remainingBalance,
         extra_services: selectedServices
       }).unwrap();
       toast.success("Thanh toán thành công! Check-out hoàn tất.");
@@ -300,6 +311,22 @@ const CheckoutContent = () => {
   const subTotal = roomFee + servicesTotal + damagesTotal;
   const vat = subTotal * 0.08;
   const grandTotal = subTotal + vat;
+
+  const isPaidBefore = useMemo(() => {
+    const status = bookingDetails?.payment_status || bookingData?.payment_status;
+    return status === 'paid' || status === 'PAID' || status === 'Đã thanh toán';
+  }, [bookingDetails?.payment_status, bookingData?.payment_status]);
+
+
+  const amountAlreadyPaid = useMemo(() => {
+    if (!isPaidBefore) return 0;
+    // Use the initial total price of the booking as the amount already paid
+    return initialBookingPrice || Number(bookingData.total_booking_price) || 0;
+  }, [isPaidBefore, initialBookingPrice, bookingData.total_booking_price]);
+
+  const remainingBalance = useMemo(() => {
+    return Math.max(0, grandTotal - amountAlreadyPaid);
+  }, [grandTotal, amountAlreadyPaid]);
 
   const formatMoney = (amount) => (amount || 0).toLocaleString('vi-VN') + ' ₫';
 
@@ -392,7 +419,7 @@ const CheckoutContent = () => {
                 <div className="flex items-center gap-2">
                   <Martini className="text-sky-600" />
                   <h4 className="m-0 text-lg font-bold text-gray-800">
-                    Dịch vụ khác
+                    Minibar
                   </h4>
                 </div>
                 <span className="text-xs text-gray-400 font-medium italic">Ghi nhận tiêu thụ tại phòng</span>
@@ -471,11 +498,31 @@ const CheckoutContent = () => {
             <div className="space-y-3 text-sm">
               <div className="flex justify-between"><span>Tạm tính</span><span>{formatMoney(subTotal)}</span></div>
               <div className="flex justify-between"><span>VAT (8%)</span><span>{formatMoney(vat)}</span></div>
-              <div className="border-t border-dashed my-4"></div>
-              <div className="flex justify-between items-end">
-                <span className="text-xs font-bold uppercase text-gray-500">Tổng thanh toán</span>
-                <span className="text-2xl font-bold text-sky-600">{formatMoney(grandTotal)}</span>
-              </div>
+              <div className="flex justify-between font-medium"><span>Tổng chi phí</span><span>{formatMoney(grandTotal)}</span></div>
+
+              {isPaidBefore && (
+                <>
+                  <div className="flex justify-between text-green-600 font-semibold">
+                    <span>Đã thanh toán trước</span>
+                    <span>-{formatMoney(amountAlreadyPaid)}</span>
+                  </div>
+                  <div className="border-t border-dashed my-4"></div>
+                  <div className="flex justify-between items-end">
+                    <span className="text-xs font-bold uppercase text-gray-500">Còn lại</span>
+                    <span className="text-2xl font-bold text-rose-600">{formatMoney(remainingBalance)}</span>
+                  </div>
+                </>
+              )}
+
+              {!isPaidBefore && (
+                <>
+                  <div className="border-t border-dashed my-4"></div>
+                  <div className="flex justify-between items-end">
+                    <span className="text-xs font-bold uppercase text-gray-500">Tổng thanh toán</span>
+                    <span className="text-2xl font-bold text-sky-600">{formatMoney(grandTotal)}</span>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
@@ -509,14 +556,14 @@ const CheckoutContent = () => {
         </div>
       </div>
 
-      <CashPaymentModal isOpen={isCashModalOpen} onClose={() => setIsCashModalOpen(false)} total={grandTotal} onConfirm={confirmCashCheckout} isProcessing={isProcessing} />
+      <CashPaymentModal isOpen={isCashModalOpen} onClose={() => setIsCashModalOpen(false)} total={remainingBalance} onConfirm={confirmCashCheckout} isProcessing={isProcessing} />
 
       <QRPaymentModal
         isOpen={isQRModalOpen}
         onClose={() => setIsQRModalOpen(false)}
         qrData={qrCodeData}
         bookingId={bookingId}
-        total={grandTotal}
+        total={remainingBalance}
         onPaymentSuccess={handleQRPaymentSuccess}
       />
     </div>

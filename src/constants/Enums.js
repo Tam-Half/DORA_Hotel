@@ -1,16 +1,17 @@
 export const BookingStatus = {
-    PENDING: "PENDING",
-    CONFIRMED: "CONFIRMED",
-    CANCELLED: "CANCELLED",
-    CHECKED_IN: "CHECKED_IN",
-    COMPLETED: "COMPLETED",
-    EXPIRED: "EXPIRED"
+    PENDING: "Chờ thanh toán",
+    CONFIRMED: "Xác nhận",
+    CANCELLED: "Đã hủy",
+    CHECKED_IN: "Đã check-in",
+    COMPLETED: "Hoàn tất",
+    EXPIRED: "Hết hạn"
 };
 
 export const BookingRoomAllocationStatus = {
-    NOT_CHECKED_IN: "NOT_CHECKED_IN",
-    CHECKED_IN: "CHECKED_IN",
-    CANCELLED: "CANCELLED"
+    NOT_CHECKED_IN: "Chưa check-in",
+    CHECKED_IN: "Đã vào ở",
+    CHECKED_OUT: "Đã trả phòng",
+    CANCELLED: "Đã hủy"
 };
 
 export const ServiceOrderStatus = {
@@ -20,10 +21,10 @@ export const ServiceOrderStatus = {
 };
 
 export const PaymentStatus = {
-    PENDING: "pending",
-    PAID: "paid",
-    FAILED: "failed",
-    CANCELLED: "cancelled"
+    PAID: "Đã thanh toán",
+    PENDING: "Chờ thanh toán",
+    FAILED: "Thất bại",
+    CANCELLED: "Đã hủy"
 };
 
 export const UserRole = {
