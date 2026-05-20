@@ -5,15 +5,15 @@ import { BookingStatus, PaymentStatus } from '../../constants/Enums';
 // Component hiển thị Trạng thái (Badge)
 export const StatusBadge = ({ status }) => {
   const styles = {
-    COMPLETED: { bg: 'bg-green-100', text: 'text-green-700', label: BookingStatus.COMPLETED },
-    CONFIRMED: { bg: 'bg-blue-100', text: 'text-blue-700', label: BookingStatus.CONFIRMED },
-    CANCELLED: { bg: 'bg-red-100', text: 'text-red-700', label: BookingStatus.CANCELLED },
-    EXPIRED: { bg: 'bg-red-100', text: 'text-red-700', label: BookingStatus.EXPIRED },
-    PENDING: { bg: 'bg-yellow-100', text: 'text-yellow-700', label: BookingStatus.PENDING },
-    CHECKED_IN: { bg: 'bg-indigo-100', text: 'text-indigo-700', label: 'Đã nhận phòng' },
+    [BookingStatus.COMPLETED]: { bg: 'bg-green-100', text: 'text-green-700', label: 'Hoàn thành' },
+    [BookingStatus.CONFIRMED]: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'Đã xác nhận' },
+    [BookingStatus.CANCELLED]: { bg: 'bg-red-100', text: 'text-red-700', label: 'Đã hủy' },
+    [BookingStatus.EXPIRED]: { bg: 'bg-red-100', text: 'text-red-700', label: 'Hết hạn' },
+    [BookingStatus.PENDING]: { bg: 'bg-yellow-100', text: 'text-yellow-700', label: 'Chờ thanh toán' },
+    [BookingStatus.CHECKED_IN]: { bg: 'bg-indigo-100', text: 'text-indigo-700', label: 'Đã nhận phòng' },
   };
 
-  const style = styles[status] || styles.PENDING;
+  const style = styles[status] || styles[BookingStatus.PENDING];
 
   return (
     <span className={`${style.bg} ${style.text} px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap`}>
@@ -84,8 +84,8 @@ Cảm ơn quý khách!`;
                   <h3 className="text-lg font-bold text-gray-900">{booking.bookingDetails?.[0]?.roomType?.name || 'Phòng nghỉ'}</h3>
                   <div className="flex items-center gap-2 mt-1">
                     <StatusBadge status={booking.status} />
-                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${booking.payment_status === 'paid' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
-                      {booking.payment_status === 'paid' ? PaymentStatus.PAID : 'Chưa thanh toán'}
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${booking.payment_status === PaymentStatus.PAID ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
+                      {booking.payment_status === PaymentStatus.PAID ? 'Đã thanh toán' : 'Chưa thanh toán'}
                     </span>
                   </div>
                 </div>
