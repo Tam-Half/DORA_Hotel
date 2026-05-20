@@ -15,12 +15,30 @@ const formatDateTime = (dateString) => {
     });
 };
 
+// Hàm hỗ trợ lấy chuỗi YYYY-MM-DD theo giờ địa phương
+const getLocalDateString = (dateInput) => {
+    if (!dateInput) return '';
+    const d = new Date(dateInput);
+    if (isNaN(d.getTime())) return '';
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
+
 export default function ShiftListModal({ isOpen, onClose }) {
     const [loading, setLoading] = useState(false);
     const [shifts, setShifts] = useState([]);
+    
+    // State quản lý ngày đang được chọn (Mặc định là Hôm nay)
+    const [selectedDate, setSelectedDate] = useState(getLocalDateString(new Date()));
 
     useEffect(() => {
-        if (isOpen) fetchShifts();
+        if (isOpen) {
+            fetchShifts();
+            // Reset về ngày hôm nay mỗi khi mở modal (tuỳ chọn)
+            setSelectedDate(getLocalDateString(new Date()));
+        }
     }, [isOpen]);
 
     const fetchShifts = async () => {
@@ -28,7 +46,6 @@ export default function ShiftListModal({ isOpen, onClose }) {
         try {
             const response = await shiftAPI.getAllShifts();
             setShifts(response.data);
-
         } catch (error) {
             console.error("Lỗi:", error);
         } finally {
@@ -36,7 +53,17 @@ export default function ShiftListModal({ isOpen, onClose }) {
         }
     };
 
+    // Lọc danh sách ca làm việc theo ngày đã chọn
+    const filteredShifts = shifts.filter(shift => {
+        if (!selectedDate) return true; // Nếu chọn "Tất cả", không lọc
+        if (!shift.start_time) return false;
+        
+        return getLocalDateString(shift.start_time) === selectedDate;
+    });
+
     if (!isOpen) return null;
+
+    const todayString = getLocalDateString(new Date());
 
     return (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/50 p-4">
@@ -57,11 +84,43 @@ export default function ShiftListModal({ isOpen, onClose }) {
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-6 bg-slate-50">
+                    
+                    {/* BỘ LỌC NGÀY THÁNG NẰM Ở ĐÂY */}
+                    <div className="mb-5 flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+                        <div className="flex gap-2">
+                            <button 
+                                onClick={() => setSelectedDate(todayString)}
+                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${selectedDate === todayString ? 'bg-indigo-600 text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                            >
+                                Hôm nay
+                            </button>
+                            <button 
+                                onClick={() => setSelectedDate('')}
+                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${!selectedDate ? 'bg-indigo-600 text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                            >
+                                Tất cả
+                            </button>
+                        </div>
+                        
+                        <div className="flex items-center gap-3">
+                            <label className="text-sm font-medium text-gray-600 cursor-pointer" htmlFor="date-picker">
+                                Chọn ngày:
+                            </label>
+                            <input 
+                                id="date-picker"
+                                type="date" 
+                                value={selectedDate}
+                                onChange={(e) => setSelectedDate(e.target.value)}
+                                className="border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-gray-50"
+                            />
+                        </div>
+                    </div>
+
                     {loading ? (
                         <div className="flex justify-center items-center h-64">
                             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600"></div>
                         </div>
-                    ) : shifts.length > 0 ? (
+                    ) : filteredShifts.length > 0 ? (
                         <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
                             <div className="overflow-x-auto">
                                 <table className="w-full text-sm text-left">
@@ -75,7 +134,7 @@ export default function ShiftListModal({ isOpen, onClose }) {
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-100">
-                                        {shifts.map((shift) => (
+                                        {filteredShifts.map((shift) => (
                                             <tr key={shift.id} className="hover:bg-indigo-50/30 transition-colors group">
                                                 <td className="px-5 py-4">
                                                     <div className="flex items-center gap-3">
@@ -135,7 +194,9 @@ export default function ShiftListModal({ isOpen, onClose }) {
                     ) : (
                         <div className="flex flex-col items-center justify-center py-20 text-gray-500">
                             <AlertCircle size={48} className="text-gray-300 mb-4" />
-                            <p className="text-lg font-medium text-gray-600">Chưa có dữ liệu</p>
+                            <p className="text-lg font-medium text-gray-600">
+                                {selectedDate ? `Không có ca làm việc nào trong ngày ${new Date(selectedDate).toLocaleDateString('vi-VN')}` : 'Chưa có dữ liệu'}
+                            </p>
                         </div>
                     )}
                 </div>

@@ -2,18 +2,20 @@ import { X, Calendar, User as UserIcon, Receipt, PlusCircle, QrCode } from 'luci
 import { QRCodeSVG } from 'qrcode.react';
 import { BookingStatus, PaymentStatus } from '../../constants/Enums';
 
-// Component hiển thị Trạng thái (Badge)
 export const StatusBadge = ({ status }) => {
   const styles = {
-    [BookingStatus.COMPLETED]: { bg: 'bg-green-100', text: 'text-green-700', label: 'Hoàn thành' },
-    [BookingStatus.CONFIRMED]: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'Đã xác nhận' },
-    [BookingStatus.CANCELLED]: { bg: 'bg-red-100', text: 'text-red-700', label: 'Đã hủy' },
-    [BookingStatus.EXPIRED]: { bg: 'bg-red-100', text: 'text-red-700', label: 'Hết hạn' },
-    [BookingStatus.PENDING]: { bg: 'bg-yellow-100', text: 'text-yellow-700', label: 'Chờ thanh toán' },
-    [BookingStatus.CHECKED_IN]: { bg: 'bg-indigo-100', text: 'text-indigo-700', label: 'Đã nhận phòng' },
+    COMPLETED: { bg: 'bg-green-100', text: 'text-green-700', label: 'Hoàn thành' },
+    CONFIRMED: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'Đã xác nhận' },
+    CANCELLED: { bg: 'bg-red-100', text: 'text-red-700', label: 'Đã hủy' },
+    EXPIRED: { bg: 'bg-red-100', text: 'text-red-700', label: 'Hết hạn' },
+    PENDING: { bg: 'bg-yellow-100', text: 'text-yellow-700', label: 'Chờ thanh toán' },
+    CHECKED_IN: { bg: 'bg-indigo-100', text: 'text-indigo-700', label: 'Đã nhận phòng' },
   };
 
-  const style = styles[status] || styles[BookingStatus.PENDING];
+  const normalizedStatus = status ? status.toString().toUpperCase() : 'PENDING';
+  
+  const style = styles[normalizedStatus] || styles['PENDING'];
+
 
   return (
     <span className={`${style.bg} ${style.text} px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap`}>
