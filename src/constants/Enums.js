@@ -21,10 +21,10 @@ export const ServiceOrderStatus = {
 };
 
 export const PaymentStatus = {
-    PAID: "Đã thanh toán",
-    PENDING: "Chờ thanh toán",
-    FAILED: "Thất bại",
-    CANCELLED: "Đã hủy"
+    PAID: "paid",
+    PENDING: "pending",
+    FAILED: "failed",
+    CANCELLED: "cancelled"
 };
 
 export const UserRole = {

@@ -23,6 +23,7 @@ export const StatusBadge = ({ status }) => {
 };
 
 const BookingDetailModal = ({ booking, onClose, formatCurrency }) => {
+  console.log("BookingDetailModal render with booking:", booking);
   if (!booking) return null;
 
   // Helper to generate text for QR code
