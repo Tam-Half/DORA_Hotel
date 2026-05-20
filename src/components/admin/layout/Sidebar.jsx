@@ -1,11 +1,12 @@
 import React from 'react';
-import { BedDouble, BarChart3, Settings } from 'lucide-react';
+import { BedDouble, BarChart3, Settings, CalendarRange } from 'lucide-react';
 import { NavLink } from 'react-router-dom'; // 1. Import NavLink
 
 // 2. Thêm đường dẫn (path) cho từng mục menu
 // Bạn nhớ bỏ thuộc tính 'active' cứng đi, NavLink sẽ tự xử lý
 const MENU_ITEMS = [
   { icon: BedDouble, label: 'Sơ đồ phòng', path: '/admin' },
+  { icon: CalendarRange, label: 'Đặt phòng', path: '/admin/bookings' },
   { icon: BarChart3, label: 'Báo cáo', path: '/admin/dashboard' },
   { icon: Settings, label: 'Cài đặt', path: '/settings' },
 ];

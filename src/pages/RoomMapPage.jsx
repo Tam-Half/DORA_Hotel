@@ -1,9 +1,6 @@
 // src/features/room-map/pages/RoomMapPage.jsx
-import React, { useState, forwardRef, useEffect, useMemo } from 'react';
-import DatePicker from 'react-datepicker';
-import "react-datepicker/dist/react-datepicker.css";
-import { vi } from 'date-fns/locale';
-import { Plus, RotateCcw, Calendar, ReceiptText, QrCode, PlayCircle } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { RotateCcw, Calendar, ReceiptText, QrCode, PlayCircle } from 'lucide-react';
 import RoomMapSidebar from '../components/admin/maproom/RoomMapSidebar';
 import RoomCard from '../components/admin/maproom/RoomCard';
 import roomAPI from '../services/room';
@@ -20,18 +17,10 @@ import QRScannerModal from '../components/admin/Model/QRScannerModal';
 import QRScanResultModal from '../components/admin/Model/QRScanResultModal';
 import { toast } from 'react-toastify';
 
-const CustomDateInput = forwardRef(({ value, onClick }, ref) => (
-  <div className="relative w-full sm:w-auto cursor-pointer" onClick={onClick} ref={ref}>
-    <input type="text" value={value} readOnly className="border border-gray-300 rounded-lg pl-3 pr-10 py-2 text-sm w-full sm:w-40 bg-white focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer" placeholder="Chọn ngày" />
-    <Calendar size={16} className="absolute right-3 top-2.5 text-gray-400 pointer-events-none" />
-  </div>
-));
-
 export default function RoomMapPage() {
   const navigate = useNavigate();
   const [activeFloor, setActiveFloor] = useState('all');
-  const [filterStatus, setFilterStatus] = useState('ALL');
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [filterStatus] = useState('ALL');
   const [loading, setLoading] = useState(true);
   const [rooms, setRooms] = useState([]);
 
@@ -97,12 +86,49 @@ export default function RoomMapPage() {
     fetchRooms();
   }, []);
 
-  const handleScanSuccess = async (decodedText) => { /* Giữ nguyên hàm quét QR của bạn */ };
+  const handleScanSuccess = async (decodedText) => {
+    try {
+      setIsScannerOpen(false); // Đóng scanner
+
+      // 1. Phân tích mã booking từ chuỗi QR được tạo ở BookingDetailModal.jsx
+      let bookingCode = decodedText.trim();
+      if (decodedText.includes("Mã:")) {
+        const match = decodedText.match(/Mã:\s*([A-Za-z0-9-]+)/);
+        if (match) {
+          bookingCode = match[1].trim();
+        }
+      }
+
+      if (!bookingCode) {
+        toast.error("Không thể đọc được mã đặt phòng từ mã QR!");
+        return;
+      }
+
+      toast.info(`Đang tải thông tin đặt phòng: ${bookingCode}...`);
+
+      // 2. Gọi API để lấy chi tiết đặt phòng
+      const response = await bookingAPI.getAll({ booking_code: bookingCode });
+      const bookingsList = Array.isArray(response) ? response : (response.data || []);
+
+      if (bookingsList.length === 0) {
+        toast.error(`Không tìm thấy thông tin đặt phòng với mã: ${bookingCode}`);
+        return;
+      }
+
+      const booking = bookingsList[0];
+      setSelectedBooking(booking);
+      setIsDetailModalOpen(true);
+      toast.success("Tải thông tin đặt phòng thành công!");
+    } catch (error) {
+      console.error("Lỗi khi tìm kiếm booking sau quét QR:", error);
+      toast.error("Có lỗi xảy ra khi tải thông tin đặt phòng!");
+    }
+  };
 
   const statusCounts = useMemo(() => {
     const initialCounts = { ALL: rooms.length, AVAILABLE: 0, BOOKED: 0, MAINTENANCE: 0 };
     return rooms.reduce((acc, room) => {
-      if (acc.hasOwnProperty(room.ui_status)) acc[room.ui_status] += 1;
+      if (room.ui_status in acc) acc[room.ui_status] += 1;
       return acc;
     }, initialCounts);
   }, [rooms]);

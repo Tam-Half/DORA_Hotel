@@ -91,6 +91,18 @@ const bookingAPI = {
         } catch (error) {
             throw error.response?.data || error.message;
         }
+    },
+    changeRoom: async (bookingId, allocationId, targetRoomId, recalculatePrice) => {
+        try {
+            const response = await api.put(`/bookings/${bookingId}/change-room`, {
+                allocationId,
+                targetRoomId,
+                recalculatePrice
+            });
+            return response.data;
+        } catch (error) {
+            throw error.response?.data || error.message;
+        }
     }
 };
 

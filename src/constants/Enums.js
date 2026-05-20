@@ -1,6 +1,6 @@
 export const BookingStatus = {
     PENDING: "Chờ thanh toán",
-    CONFIRMED: "Xác nhận",
+    CONFIRMED: "Đã xác nhận",
     CANCELLED: "Đã hủy",
     CHECKED_IN: "Đã check-in",
     COMPLETED: "Hoàn tất",
@@ -15,9 +15,9 @@ export const BookingRoomAllocationStatus = {
 };
 
 export const ServiceOrderStatus = {
-    PENDING: "pending",
-    FULFILLED: "fulfilled",
-    CANCELLED: "cancelled"
+    pending: "Đang chờ",
+    fulfilled: "Đã phục vụ",
+    cancelled: "Đã hủy"
 };
 
 export const PaymentStatus = {
