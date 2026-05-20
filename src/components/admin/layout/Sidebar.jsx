@@ -8,7 +8,6 @@ const MENU_ITEMS = [
   { icon: BedDouble, label: 'Sơ đồ phòng', path: '/admin' },
   { icon: CalendarRange, label: 'Đặt phòng', path: '/admin/bookings' },
   { icon: BarChart3, label: 'Báo cáo', path: '/admin/dashboard' },
-  { icon: Settings, label: 'Cài đặt', path: '/settings' },
 ];
 
 export default function Sidebar() {
@@ -29,6 +28,7 @@ export default function Sidebar() {
           <NavLink
             key={index}
             to={item.path}
+            end={item.path === '/admin'}
             className={({ isActive }) =>
               `w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${isActive
                 ? 'bg-blue-50 text-blue-600' // Style khi đang ở trang này
@@ -42,18 +42,6 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      {/* User Profile Footer */}
-      <div className="p-4 border-t border-gray-100">
-        <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-          <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden">
-            <img src="https://ui-avatars.com/api/?name=Admin+Dora" alt="Admin" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold text-gray-900 truncate">Admin Dora</p>
-            <p className="text-xs text-gray-500 truncate">Quản trị viên</p>
-          </div>
-        </div>
-      </div>
     </aside>
   );
 }

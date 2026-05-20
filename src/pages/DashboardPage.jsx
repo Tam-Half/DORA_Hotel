@@ -7,6 +7,7 @@ import {
 } from "recharts";
 import { Coins, Receipt, ChartNoAxesCombined, HandCoins } from 'lucide-react';
 import reportAPI from "../services/report";
+import DashboardLayout from '../components/admin/layout/DashboardLayout';
 
 const PIE_COLORS = ["#6366f1", "#22d3ee", "#f59e0b", "#10b981", "#f43f5e", "#a78bfa"];
 
@@ -180,10 +181,11 @@ export default function DashboardPage() {
   }, [filterType, customRange, data]);
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <DashboardLayout>
+      <div className="space-y-6">
 
       {/* ── Sticky top bar ─────────────────────────────────────────────── */}
-      <header className="bg-white border-b border-gray-100 sticky top-0 z-20 shadow-sm">
+      <header className="bg-white border-b border-gray-100 sticky top-16 z-20 shadow-sm">
         <div className="max-w-screen-xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-4">
 
           {/* Back to /admin */}
@@ -524,6 +526,7 @@ export default function DashboardPage() {
           </>
         )}
       </main>
-    </div>
+      </div>
+    </DashboardLayout>
   );
 }

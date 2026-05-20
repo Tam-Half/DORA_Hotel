@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Search, Bell, HelpCircle, Download, Loader2 } from 'lucide-react';
 // Import file utils xuất excel vừa tạo
-import { exportTaxReportToExcel } from '../../../utils/exportTaxReport'; 
+import { exportTaxReportToExcel } from '../../../utils/exportTaxReport';
 
 export default function Header() {
   const [isExporting, setIsExporting] = useState(false);
@@ -20,7 +20,7 @@ export default function Header() {
 
       // Gọi hàm xuất Excel (truyền data và kỳ báo cáo)
       await exportTaxReportToExcel(mockData, 'Tháng 4 Năm 2026');
-      
+
     } catch (error) {
       console.error("Lỗi khi xuất file Excel:", error);
       alert("Có lỗi xảy ra khi xuất báo cáo!");
@@ -30,27 +30,26 @@ export default function Header() {
   };
 
   return (
-    <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-8 fixed top-0 left-64 right-0 z-10">
+    <header className="h-16 bg-white border-b border-gray-200 flex justify-end items-center justify-between px-8 fixed top-0 left-64 right-0 z-10">
       {/* Search Bar */}
-      <div className="flex items-center w-96 bg-gray-50 rounded-lg px-4 py-2 border border-transparent focus-within:border-blue-200 focus-within:bg-white transition-all">
+      {/* <div className="flex items-center w-96 bg-gray-50 rounded-lg px-4 py-2 border border-transparent focus-within:border-blue-200 focus-within:bg-white transition-all">
         <Search size={18} className="text-gray-400" />
         <input 
           type="text" 
           placeholder="Tìm kiếm giao dịch, khách hàng..." 
           className="bg-transparent border-none outline-none text-sm ml-3 w-full text-gray-700 placeholder-gray-400"
         />
-      </div>
+      </div> */}
 
       {/* Actions */}
       <div className="flex items-center gap-4">
-        
+
         {/* Nút Xuất báo cáo đã được gắn hàm onClick */}
-        <button 
+        <button
           onClick={handleExport}
           disabled={isExporting}
-          className={`flex items-center gap-2 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition-all ${
-            isExporting ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 shadow-blue-200'
-          }`}
+          className={`flex items-center gap-2 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition-all ${isExporting ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 shadow-blue-200'
+            }`}
         >
           {isExporting ? (
             <><Loader2 size={16} className="animate-spin" /> Đang xuất...</>

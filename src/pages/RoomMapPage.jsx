@@ -16,6 +16,7 @@ import { useNavigate } from 'react-router-dom';
 import QRScannerModal from '../components/admin/Model/QRScannerModal';
 import QRScanResultModal from '../components/admin/Model/QRScanResultModal';
 import { toast } from 'react-toastify';
+import DashboardLayout from '../components/admin/layout/DashboardLayout';
 
 export default function RoomMapPage() {
   const navigate = useNavigate();
@@ -167,7 +168,8 @@ export default function RoomMapPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans p-6">
+    <DashboardLayout>
+      <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Sơ Đồ Phòng Trống</h1>
@@ -263,6 +265,7 @@ export default function RoomMapPage() {
 
       <QRScannerModal isOpen={isScannerOpen} onClose={() => setIsScannerOpen(false)} onScanSuccess={handleScanSuccess} />
       {isDetailModalOpen && selectedBooking && <QRScanResultModal isOpen={isDetailModalOpen} booking={selectedBooking} onClose={() => setIsDetailModalOpen(false)} />}
-    </div>
+      </div>
+    </DashboardLayout>
   );
 }
