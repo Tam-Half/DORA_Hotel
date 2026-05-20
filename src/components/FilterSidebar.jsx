@@ -90,7 +90,7 @@ export default function FilterSidebar({
 
 
       {/* --- ĐÁNH GIÁ --- */}
-      <div className="mb-6 border-t border-gray-100 pt-6">
+      {/* <div className="mb-6 border-t border-gray-100 pt-6">
         <h4 className="font-semibold text-sm mb-3">Đánh giá tối thiểu</h4>
         <div className="flex flex-wrap gap-2">
           {[4, 3, 2, 1].map((star) => (
@@ -107,7 +107,7 @@ export default function FilterSidebar({
             </button>
           ))}
         </div>
-      </div>
+      </div> */}
 
       {/* --- TIỆN NGHI --- */}
       {/* <div className="mb-6 border-t border-gray-100 pt-6">

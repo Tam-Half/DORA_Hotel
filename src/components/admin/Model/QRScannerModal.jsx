@@ -28,7 +28,7 @@ const QRScannerModal = ({ isOpen, onClose, onScanSuccess }) => {
             // Tự động đóng sau khi quét thành công
             scanner.clear().catch(e => console.error(e));
           },
-          (errorMessage) => {
+          () => {
             // Lỗi quét (không phải lỗi camera), bỏ qua
           }
         );
@@ -56,8 +56,22 @@ const QRScannerModal = ({ isOpen, onClose, onScanSuccess }) => {
           border: none !important;
           width: 100% !important;
         }
-        #${elementId} img {
+        /* Chỉ ẩn biểu tượng camera mặc định, không ẩn ảnh QR tải lên */
+        #${elementId} img[alt*="Camera" i] {
           display: none !important;
+        }
+        /* Làm đẹp ảnh QR được tải lên */
+        #${elementId} img:not([alt*="Camera" i]) {
+          max-width: 100% !important;
+          max-height: 280px !important;
+          object-fit: contain !important;
+          border-radius: 12px !important;
+          margin: 15px auto !important;
+          display: block !important;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+          border: 2px dashed #e2e8f0 !important;
+          padding: 8px !important;
+          background: #f8fafc !important;
         }
         #${elementId}__dashboard_section_csr button {
           background: #4f46e5 !important;
