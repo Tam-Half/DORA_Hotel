@@ -27,9 +27,24 @@ export const roomTypeApi = createApi({
             }),
             providesTags: (result, error, { id }) => [{ type: 'RoomType', id }],
         }),
+        updateRoomType: builder.mutation({
+            query: ({ id, data }) => ({
+                url: `/room-type/${id}`,
+                method: 'PATCH',
+                data,
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            }),
+            invalidatesTags: (result, error, { id }) => [
+                { type: 'RoomType', id },
+                { type: 'RoomType', id: 'LIST' },
+            ],
+        }),
     }),
 });
 export const {
     useGetAllRoomTypesQuery,
     useGetRoomTypeByIdQuery,
+    useUpdateRoomTypeMutation,
 } = roomTypeApi;

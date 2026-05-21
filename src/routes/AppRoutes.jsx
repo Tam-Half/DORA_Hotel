@@ -13,6 +13,7 @@ import PaymentCancelPage from "../pages/PaymentCancelPage";
 import CheckoutPage from "../pages/CheckoutPage";
 import CheckoutPageAdmin from "../pages/CheckoutPageAdmin";
 import BookingPage from "../pages/BookingPage";
+import RoomTypeManagePage from "../pages/RoomTypeManagePage";
 import AdminRoute from "../components/admin/routesadmin/AdminRoute"
 
 export default function AppRoutes() {
@@ -68,6 +69,14 @@ export default function AppRoutes() {
                     element={
                         <AdminRoute>
                             <CheckoutPageAdmin />
+                        </AdminRoute>
+                    } 
+                />
+                <Route 
+                    path="/admin/room-types" 
+                    element={
+                        <AdminRoute>
+                            <RoomTypeManagePage />
                         </AdminRoute>
                     } 
                 />

@@ -6,6 +6,7 @@ import { NavLink } from 'react-router-dom'; // 1. Import NavLink
 // Bạn nhớ bỏ thuộc tính 'active' cứng đi, NavLink sẽ tự xử lý
 const MENU_ITEMS = [
   { icon: BedDouble, label: 'Sơ đồ phòng', path: '/admin' },
+  { icon: Settings, label: 'Loại phòng', path: '/admin/room-types' },
   { icon: CalendarRange, label: 'Đặt phòng', path: '/admin/bookings' },
   { icon: BarChart3, label: 'Báo cáo', path: '/admin/dashboard' },
 ];
