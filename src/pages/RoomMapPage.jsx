@@ -62,9 +62,22 @@ export default function RoomMapPage() {
   }, []);
 
   const [roomTypes, setRoomTypes] = useState([]);
-  const [selectedRoomType, setSelectedRoomType] = useState('all');
-  const [checkInDate, setCheckInDate] = useState('');
-  const [checkOutDate, setCheckOutDate] = useState('');
+  const [selectedRoomType, setSelectedRoomType] = useState(() => sessionStorage.getItem('room_map_room_type') || 'all');
+  const [checkInDate, setCheckInDate] = useState(() => sessionStorage.getItem('room_map_checkin') || '');
+  const [checkOutDate, setCheckOutDate] = useState(() => sessionStorage.getItem('room_map_checkout') || '');
+
+  // Synchronize filters with sessionStorage
+  useEffect(() => {
+    sessionStorage.setItem('room_map_room_type', selectedRoomType);
+  }, [selectedRoomType]);
+
+  useEffect(() => {
+    sessionStorage.setItem('room_map_checkin', checkInDate);
+  }, [checkInDate]);
+
+  useEffect(() => {
+    sessionStorage.setItem('room_map_checkout', checkOutDate);
+  }, [checkOutDate]);
 
   const fetchRooms = async (checkIn = '', checkOut = '') => {
     try {
@@ -91,7 +104,13 @@ export default function RoomMapPage() {
 
   // Các Effect khác giữ nguyên như cũ
   useEffect(() => {
-    fetchRooms();
+    const savedCheckIn = sessionStorage.getItem('room_map_checkin') || '';
+    const savedCheckOut = sessionStorage.getItem('room_map_checkout') || '';
+    if (savedCheckIn && savedCheckOut) {
+      fetchRooms(savedCheckIn, savedCheckOut);
+    } else {
+      fetchRooms();
+    }
     
     // Fetch room types too
     const fetchRoomTypes = async () => {
@@ -209,7 +228,7 @@ export default function RoomMapPage() {
         <h3 className="text-gray-700 font-bold mb-4"><span className="bg-gray-200 px-2 py-1 rounded text-xs">{floorName}</span></h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           {roomsInFloor.map(room => (
-            <RoomCard key={room.id} room={{ ...room, status: room.ui_status, guestName: room.current_guest }} onClick={(data) => navigate(`/admin/detailroom`, { state: data })} />
+            <RoomCard key={room.id} room={{ ...room, status: room.ui_status, guestName: room.current_guest }} onClick={(data) => navigate(`/admin/detailroom`, { state: { ...data, filterCheckIn: checkInDate, filterCheckOut: checkOutDate } })} />
           ))}
         </div>
       </div>

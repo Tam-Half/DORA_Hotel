@@ -81,7 +81,7 @@ const bookingAPI = {
             throw error.response?.data || error.message;
         }
     },
-    updateRoomStatus: async (bookingId, status , allocationId) => {
+    updateRoomStatus: async (bookingId, status, allocationId) => {
         try {
             const response = await api.put(`/bookings/${bookingId}/room-status`, {
                 allocationId: allocationId,
@@ -99,6 +99,14 @@ const bookingAPI = {
                 targetRoomId,
                 recalculatePrice
             });
+            return response.data;
+        } catch (error) {
+            throw error.response?.data || error.message;
+        }
+    },
+    create: async (data) => {
+        try {
+            const response = await api.post('/bookings', data);
             return response.data;
         } catch (error) {
             throw error.response?.data || error.message;
