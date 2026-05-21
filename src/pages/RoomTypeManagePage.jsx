@@ -191,7 +191,7 @@ export default function RoomTypeManagePage() {
               return (
                 <div key={roomType.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all flex flex-col md:flex-row h-full">
                   {/* Thumbnail */}
-                  <div className="w-full md:w-48 h-28 md:h-auto bg-gray-100 relative flex-shrink-0">
+                  <div className="w-full md:w-64 h-20 md:h-auto bg-gray-100 relative flex-shrink-0">
                     {image ? (
                       <img src={image} alt={roomType.name} className="w-full h-full object-cover" />
                     ) : (
@@ -228,7 +228,7 @@ export default function RoomTypeManagePage() {
 
                     <div className="flex justify-between items-center gap-4 mt-6 pt-4 border-t border-gray-100">
                       <div>
-                        <p className="text-[10px] text-gray-400 uppercase font-bold">Giá cơ bản</p>
+                        <p className="text-[10px] text-gray-400 uppercase font-bold">Giá mỗi đêm</p>
                         <p className="font-bold text-sky-600 text-lg mt-0.5">{formatMoney(roomType.base_price)}</p>
                       </div>
                       <button
