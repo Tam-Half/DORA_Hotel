@@ -16,10 +16,8 @@ export default function Sidebar() {
     <aside className="w-64 bg-white border-r border-gray-200 h-screen flex flex-col fixed left-0 top-0">
       {/* Logo */}
       <div className="h-16 flex items-center px-6 border-b border-gray-100">
-        <div className="bg-blue-600 p-1.5 rounded-lg mr-3">
-          <span className="text-white font-bold text-lg">D</span>
-        </div>
-        <span className="text-xl font-bold text-gray-900">DORA HOTEL</span>
+
+        <span className="text-xl font-bold text-gray-900">DORAHOTEL</span>
       </div>
 
       {/* Menu */}

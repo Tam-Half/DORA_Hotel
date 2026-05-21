@@ -6,9 +6,9 @@ import { useLocation, Navigate } from 'react-router-dom';
 const AdminHeader = (user) => (
   <header className="bg-white border-b border-gray-200 h-16 px-6 flex items-center justify-between sticky top-0 z-50">
     <div className="flex items-center gap-2">
-      <div className="bg-blue-600 p-1.5 rounded-lg text-white">
+      {/* <div className="bg-blue-600 p-1.5 rounded-lg text-white">
         <Building2 size={24} />
-      </div>
+      </div> */}
       <h1 className="text-xl font-bold text-gray-800 tracking-tight">DORA HOTEL</h1>
     </div>
 

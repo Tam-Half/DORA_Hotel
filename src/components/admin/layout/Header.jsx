@@ -45,7 +45,7 @@ export default function Header() {
       <div className="flex items-center gap-4">
 
         {/* Nút Xuất báo cáo đã được gắn hàm onClick */}
-        <button
+        {/* <button
           onClick={handleExport}
           disabled={isExporting}
           className={`flex items-center gap-2 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition-all ${isExporting ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 shadow-blue-200'
@@ -65,7 +65,7 @@ export default function Header() {
         </button>
         <button className="text-gray-500 hover:text-gray-700">
           <HelpCircle size={20} />
-        </button>
+        </button> */}
       </div>
     </header>
   );
