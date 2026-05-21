@@ -1,6 +1,6 @@
 // src/features/room-map/pages/RoomMapPage.jsx
 import React, { useState, useEffect, useMemo } from 'react';
-import { RotateCcw, Calendar, ReceiptText, QrCode, PlayCircle } from 'lucide-react';
+import { RotateCcw, Calendar, ReceiptText, QrCode, PlayCircle, Filter } from 'lucide-react';
 import RoomMapSidebar from '../components/admin/maproom/RoomMapSidebar';
 import RoomCard from '../components/admin/maproom/RoomCard';
 import roomAPI from '../services/room';
@@ -61,31 +61,79 @@ export default function RoomMapPage() {
     fetchCurrentShift();
   }, []);
 
+  const [roomTypes, setRoomTypes] = useState([]);
+  const [selectedRoomType, setSelectedRoomType] = useState('all');
+  const [checkInDate, setCheckInDate] = useState('');
+  const [checkOutDate, setCheckOutDate] = useState('');
+
+  const fetchRooms = async (checkIn = '', checkOut = '') => {
+    try {
+      setLoading(true);
+      const response = await roomAPI.getRoomGridStatus(undefined, checkIn, checkOut);
+      const rawData = Array.isArray(response) ? response : (response.data || []);
+
+      const mappedData = rawData.map(room => {
+        let uiStatus = 'AVAILABLE';
+        if (room.status === 'CHECKED_IN') uiStatus = 'BOOKED';
+        else if (room.status === 'MAINTENANCE') uiStatus = 'MAINTENANCE';
+
+        return { ...room, ui_status: uiStatus, guestName: room.current_guest };
+      });
+
+      setRooms(mappedData);
+    } catch (err) {
+      console.error('Failed to fetch rooms:', err);
+      toast.error('Không thể tải sơ đồ phòng!');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Các Effect khác giữ nguyên như cũ
   useEffect(() => {
-    const fetchRooms = async () => {
+    fetchRooms();
+    
+    // Fetch room types too
+    const fetchRoomTypes = async () => {
       try {
-        setLoading(true);
-        const response = await roomAPI.getRoomGridStatus();
-        const rawData = Array.isArray(response) ? response : (response.data || []);
-
-        const mappedData = rawData.map(room => {
-          let uiStatus = 'AVAILABLE';
-          if (room.status === 'CHECKED_IN') uiStatus = 'BOOKED';
-          else if (room.status === 'MAINTENANCE') uiStatus = 'MAINTENANCE';
-
-          return { ...room, ui_status: uiStatus, guestName: room.current_guest };
-        });
-
-        setRooms(mappedData);
+        const response = await roomAPI.getAllRoomTypes();
+        const data = Array.isArray(response) ? response : (response.data || []);
+        setRoomTypes(data);
       } catch (err) {
-        console.error('Failed to fetch rooms:', err);
-      } finally {
-        setLoading(false);
+        console.error('Failed to fetch room types:', err);
       }
     };
-    fetchRooms();
+    fetchRoomTypes();
   }, []);
+
+  const handleFilter = () => {
+    if ((checkInDate && !checkOutDate) || (!checkInDate && checkOutDate)) {
+      toast.warn("Vui lòng chọn đầy đủ cả Ngày Check-in và Ngày Check-out!");
+      return;
+    }
+
+    if (checkInDate && checkOutDate) {
+      const checkIn = new Date(checkInDate);
+      const checkOut = new Date(checkOutDate);
+
+      if (checkOut <= checkIn) {
+        toast.error("Ngày Check-out phải lớn hơn Ngày Check-in!");
+        return;
+      }
+      
+      fetchRooms(checkInDate, checkOutDate);
+    } else {
+      fetchRooms();
+    }
+  };
+
+  const handleReset = () => {
+    setCheckInDate('');
+    setCheckOutDate('');
+    setSelectedRoomType('all');
+    fetchRooms();
+    toast.success("Đã đặt lại bộ lọc sơ đồ phòng!");
+  };
 
   const handleScanSuccess = async (decodedText) => {
     try {
@@ -137,7 +185,8 @@ export default function RoomMapPage() {
   const filteredRooms = rooms.filter(room => {
     const matchFloor = activeFloor === 'all' || room.floor?.id === activeFloor;
     const matchStatus = filterStatus === 'ALL' || room.ui_status === filterStatus;
-    return matchFloor && matchStatus;
+    const matchRoomType = selectedRoomType === 'all' || room.roomType?.id === Number(selectedRoomType);
+    return matchFloor && matchStatus && matchRoomType;
   });
 
   const uniqueFloors = useMemo(() => {
@@ -219,6 +268,67 @@ export default function RoomMapPage() {
 
         {/* Nội dung bên trong bộ lọc giữ nguyên... */}
         <div className="lg:col-span-4 space-y-6">
+
+          {/* Bộ lọc phòng trống cao cấp */}
+          <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Ngày Check-in</label>
+                <div className="relative">
+                  <input
+                    type="date"
+                    value={checkInDate}
+                    onChange={(e) => setCheckInDate(e.target.value)}
+                    className="w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-700 bg-gray-50 hover:bg-white transition-all"
+                  />
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Ngày Check-out</label>
+                <div className="relative">
+                  <input
+                    type="date"
+                    value={checkOutDate}
+                    onChange={(e) => setCheckOutDate(e.target.value)}
+                    className="w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-700 bg-gray-50 hover:bg-white transition-all"
+                  />
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Loại phòng</label>
+                <select
+                  value={selectedRoomType}
+                  onChange={(e) => setSelectedRoomType(e.target.value)}
+                  className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-700 bg-gray-50 hover:bg-white transition-all cursor-pointer"
+                >
+                  <option value="all">Tất Cả Loại Phòng</option>
+                  {roomTypes.map(type => (
+                    <option key={type.id} value={type.id}>{type.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={handleFilter}
+                  className="flex-1 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm transition-all duration-200 flex items-center justify-center gap-2 hover:shadow-indigo-100"
+                >
+                  <Filter size={16} /> Lọc Phòng
+                </button>
+                <button
+                  onClick={handleReset}
+                  className="px-3 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-200 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center"
+                  title="Đặt lại bộ lọc"
+                >
+                  <RotateCcw size={16} />
+                </button>
+              </div>
+            </div>
+          </div>
 
           <div className="min-h-[500px]">
             {loading && <div className="text-center text-gray-500 py-10">Đang tải...</div>}
