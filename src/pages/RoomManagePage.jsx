@@ -14,17 +14,17 @@ const AdminHeader = (user) => (
 
     <div className="flex items-center gap-6">
       <button className="text-gray-500 hover:text-gray-900">
-                 <BellRing className="cursor-pointer text-xl text-yellow-500 hover:text-gray-700" />
+        {/* <BellRing className="cursor-pointer text-xl text-yellow-500 hover:text-gray-700" /> */}
 
       </button>
       <div className="flex items-center gap-3 pl-6 border-l border-gray-200">
         <div className="text-right hidden md:block">
           <p className="text-sm font-bold text-gray-900">{user ? user?.user?.name : 'Admin'}</p>
-          <p className="text-xs text-gray-500">Quản trị viên</p>
+          {/* <p className="text-xs text-gray-500">Quản trị viên</p> */}
         </div>
-        <div className="w-10 h-10  rounded-full flex items-center justify-center text-yellow-700 bg-white-200 border-2 border-blue-500 shadow-sm overflow-hidden">
+        {/* <div className="w-10 h-10  rounded-full flex items-center justify-center text-yellow-700 bg-white-200 border-2 border-blue-500 shadow-sm overflow-hidden">
           <img  src={user ? user?.user?.avatar_url : "https://ui-avatars.com/api/?name=Admin&background=fde047&color=854d0e"} alt="Admin" />
-        </div>
+        </div> */}
       </div>
     </div>
   </header>

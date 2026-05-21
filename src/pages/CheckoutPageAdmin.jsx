@@ -212,13 +212,38 @@ const CheckoutContent = () => {
     }
   }, [bookingDetails, initialBookingPrice]);
 
+  const calculatedNights = useMemo(() => {
+    if (!bookingDetails) return 1;
+    const checkIn = new Date(bookingDetails.check_in_date);
+    const now = new Date();
+
+    const checkInDateOnly = new Date(checkIn.getFullYear(), checkIn.getMonth(), checkIn.getDate());
+    const nowDateOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    let nights = Math.round((nowDateOnly - checkInDateOnly) / (1000 * 3600 * 24));
+    if (nights < 0) nights = 0;
+
+    const isPastNoon = now.getHours() >= 12;
+    if (isPastNoon) {
+      nights += 1;
+    }
+
+    return Math.max(1, nights);
+  }, [bookingDetails]);
+
+  const plannedNights = useMemo(() => {
+    if (!bookingDetails) return 1;
+    const checkIn = new Date(bookingDetails.check_in_date);
+    const checkOut = new Date(bookingDetails.check_out_date);
+    return Math.ceil((checkOut - checkIn) / (1000 * 3600 * 24)) || 1;
+  }, [bookingDetails]);
+
   const roomFee = useMemo(() => {
     if (!bookingDetails?.bookingDetails) return Number(bookingData.total_booking_price) || 0;
     return bookingDetails.bookingDetails.reduce((sum, detail) => {
-      const nights = Math.ceil((new Date(bookingDetails.check_out_date) - new Date(bookingDetails.check_in_date)) / (1000 * 3600 * 24)) || 1;
-      return sum + (Number(detail.price_at_booking) * detail.quantity * nights);
+      return sum + (Number(detail.price_at_booking) * detail.quantity * calculatedNights);
     }, 0);
-  }, [bookingDetails, bookingData.total_booking_price]);
+  }, [bookingDetails, bookingData.total_booking_price, calculatedNights]);
 
   const handleQuantityChange = (id, delta) => {
     setServices(prev => prev.map(srv => srv.id === id ? { ...srv, quantity: Math.max(1, srv.quantity + delta) } : srv));
@@ -346,13 +371,13 @@ const CheckoutContent = () => {
           <h2 className="m-0 text-xl font-semibold text-gray-900">Check-out & Thanh toán</h2>
         </div>
         <div className="flex items-center gap-5">
-          <BellRing className="cursor-pointer text-xl text-yellow-500 hover:text-gray-700" />
+          {/* <BellRing className="cursor-pointer text-xl text-yellow-500 hover:text-gray-700" /> */}
           <div className="flex items-center border-l border-gray-300 pl-5">
             <div className="text-right mr-2">
               <p className="m-0 text-sm font-semibold text-gray-900">{userString ? JSON.parse(userString).name : 'Admin'}</p>
-              <p className="m-0 text-xs text-gray-500">Quản lý ca trực</p>
+              {/* <p className="m-0 text-xs text-gray-500">Quản lý ca trực</p> */}
             </div>
-            <img className="w-9 h-9 rounded-full border-2 border-blue-500 text-white flex items-center justify-center font-bold" src={userString ? JSON.parse(userString).avatar_url : undefined} alt="Avatar" />
+            {/* <img className="w-9 h-9 rounded-full border-2 border-blue-500 text-white flex items-center justify-center font-bold" src={userString ? JSON.parse(userString).avatar_url : undefined} alt="Avatar" /> */}
           </div>
         </div>
       </div>
@@ -389,6 +414,18 @@ const CheckoutContent = () => {
             </div>
           </div>
 
+          {new Date().getHours() >= 12 && (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex gap-3 shadow-sm animate-fadeIn">
+              <span className="text-amber-600 text-lg">⚠️</span>
+              <div>
+                <h5 className="font-bold text-amber-800 text-sm uppercase tracking-wide">Trả phòng muộn (Sau 12h00)</h5>
+                <p className="text-xs text-amber-700 font-medium mt-1 leading-relaxed">
+                  Giờ hiện tại là <strong className="text-amber-900">{new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</strong> hôm nay. Theo quy định của khách sạn, do quá 12h trưa nên hệ thống đã tự động cộng thêm 1 ngày lưu trú vào tổng số đêm tính tiền của khách .
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Tiền phòng */}
           <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-50">
             <div className="flex items-center gap-3 mb-4">
@@ -404,7 +441,14 @@ const CheckoutContent = () => {
               </thead>
               <tbody>
                 <tr>
-                  <td className="py-4 border-b text-sm text-gray-800">Tiền phòng lưu trú<br /><span className="text-xs text-gray-500">Mã: {bookingDetails?.booking_code || bookingData.booking_code}</span></td>
+                  <td className="py-4 border-b text-sm text-gray-800">
+                    <div className="font-semibold text-gray-900">Tiền phòng lưu trú ({calculatedNights} đêm)</div>
+                    <div className="text-xs text-gray-500 mt-1">Mã đặt phòng: {bookingDetails?.booking_code || bookingData.booking_code}</div>
+                    <div className="text-xs text-gray-500 mt-0.5">Kế hoạch: {plannedNights} đêm ({checkInDisplay} — {checkOutDisplay})</div>
+                    <div className="text-xs text-indigo-600 font-semibold mt-1 bg-indigo-50/50 border border-indigo-100 rounded-md px-2 py-1 inline-block">
+                      Thực tế: Nhận {checkInDisplay} — Trả {new Date().toLocaleDateString('vi-VN')} {new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                  </td>
                   <td className="py-4 border-b text-right text-sky-600 font-bold">{formatMoney(roomFee)}</td>
                 </tr>
               </tbody>
