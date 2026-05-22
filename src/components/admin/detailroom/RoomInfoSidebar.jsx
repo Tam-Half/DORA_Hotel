@@ -12,13 +12,13 @@ export default function RoomInfoSidebar({ room }) {
       {/* Nút Quay lại */}
       <button
         onClick={() => navigate(-1)}
-       className="flex items-center gap-2 text-gray-500 hover:text-gray-900 mb-6 transition-colors font-medium">
+        className="flex items-center gap-2 text-gray-500 hover:text-gray-900 mb-6 transition-colors font-medium">
         <ArrowLeft size={18} /> Quay lại
       </button>
 
       {/* Tiêu đề */}
       <h2 className="text-xl font-bold text-gray-900 mb-4">Thông tin phòng</h2>
-      
+
       {/* Số phòng nổi bật */}
       <div className="flex items-baseline gap-2 mb-6">
         <span className="text-3xl font-bold text-blue-600">P: {room.room_number}</span>
@@ -43,7 +43,7 @@ export default function RoomInfoSidebar({ room }) {
           <div className="mt-1 text-gray-400"><Layout size={20} /></div>
           <div>
             <p className="text-xs font-bold text-gray-400 uppercase mb-1">Loại phòng</p>
-            <p className="font-semibold text-gray-800">{room.roomType?.slug}</p>
+            <p className="font-semibold text-gray-800">{room.roomType?.name}</p>
           </div>
         </div>
 
