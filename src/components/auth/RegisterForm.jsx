@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Mail, Eye, EyeOff, Loader2, User, Phone, Lock, Image as ImageIcon } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-toastify';
 
 export default function RegisterForm() {
     const navigate = useNavigate();
-    const { register } = useAuth();
+    const location = useLocation();
+    const { register, login } = useAuth();
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -33,7 +34,17 @@ export default function RegisterForm() {
         try {
             await register(payload);
             toast.success('Đăng ký tài khoản thành công!');
-            navigate('/login');
+            
+            // Auto login after registration
+            await login({
+                username: formData.username,
+                password: formData.password
+            });
+
+            // Redirect directly to checkout or fallback to home/history
+            const from = location.state?.from || '/';
+            const checkoutState = location.state?.checkoutState;
+            navigate(from, { state: checkoutState });
         } catch (err) {
             console.error('Registration error:', err);
             setError(err.message || 'Có lỗi xảy ra khi đăng ký');
@@ -178,7 +189,7 @@ export default function RegisterForm() {
                         Đã có tài khoản?{' '}
                         <button
                             type="button"
-                            onClick={() => navigate('/login')}
+                            onClick={() => navigate('/login', { state: location.state })}
                             className="font-bold text-blue-600 hover:text-blue-500 hover:underline"
                         >
                             Đăng nhập ngay

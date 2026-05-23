@@ -162,7 +162,7 @@ export default function LoginForm() {
             Chưa có tài khoản?{' '}
             <button
               type="button"
-              onClick={() => navigate('/register')}
+              onClick={() => navigate('/register', { state: location.state })}
               className="font-bold text-blue-600 hover:text-blue-500 hover:underline"
             >
               Đăng ký tài khoản mới
