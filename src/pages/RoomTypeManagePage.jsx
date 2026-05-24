@@ -156,15 +156,6 @@ export default function RoomTypeManagePage() {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 flex items-center gap-4">
-            <div className="p-3 bg-indigo-50 text-indigo-600 rounded-lg">
-              <Users size={24} />
-            </div>
-            <div>
-              <p className="text-xs font-semibold text-gray-400 uppercase">Sức chứa TB</p>
-              <h3 className="text-2xl font-bold text-gray-800 mt-1">{avgCapacity} khách / phòng</h3>
-            </div>
-          </div>
         </div>
 
         {/* Loading / Error States */}
