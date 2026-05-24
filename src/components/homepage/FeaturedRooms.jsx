@@ -26,7 +26,7 @@ export default function FeaturedRooms() {
             <h2 className="text-3xl font-bold text-gray-900 mb-2">Phòng Nghỉ Nổi Bật</h2>
             <p className="text-gray-500">Những lựa chọn được yêu thích nhất tại Dora Hotel</p>
           </div>
-          <a href="#" className="hidden md:flex items-center text-blue-600 font-semibold hover:gap-2 transition-all">
+          <a href="/searchrooms" className="hidden md:flex items-center text-blue-600 font-semibold hover:gap-2 transition-all">
             Xem tất cả phòng <ChevronRight size={20} />
           </a>
         </div>

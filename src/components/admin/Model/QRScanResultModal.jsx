@@ -163,11 +163,11 @@ const QRScanResultModal = ({ isOpen, onClose, booking }) => {
           >
             Đóng
           </button>
-          <button
+          {/* <button
             className="flex-[2] py-3 px-6 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-200 transition-all flex items-center justify-center gap-2"
           >
             Xác nhận Check-in
-          </button>
+          </button> */}
         </div>
       </div>
     </div>
